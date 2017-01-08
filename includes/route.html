@@ -1,0 +1,137 @@
+<div class="row col-md-10">
+    <div class="col-md-6">
+        <!--<ol class="breadcrumb">-->
+            <!--<li><a href="#">[Route_category]</a></li>-->
+            <!--<li class="active">[Route_name]</li>-->
+        <!--</ol>-->
+        <h2>
+            <span ng-class="'label right-5 label-'+visualHelper.getMethodColorByRoute(route)">{{route.getMethod()}}</span>{{route.getName()}}
+        </h2>
+        <div class="span6 offset1">
+            <h3>Description</h3>
+            <p class="bg-warning">{{route.getDescription()}}</p>
+            <blockquote>
+                <p>{{route.getUrl()}}</p>
+            </blockquote>
+            <div ng-if="route.hasUriParameterList()">
+                <h3>Uri Parameters</h3>
+                <table class="table table-condensed">
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th>Optional</th>
+                        <th>Example</th>
+                    </tr>
+                    <tr ng-repeat="parameter in route.getUriParameterList()">
+                        <td>{{parameter.getName()}}</td>
+                        <td>{{parameter.getDescription()}}</td>
+                        <td>{{parameter.getType()}} / {{parameter.getDataType()}}</td>
+                        <td>{{parameter.isOptional()}}</td>
+                        <td>{{parameter.getExampleData()}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div ng-if="route.hasPostParameterList()">
+                <h3>Uri Parameters</h3>
+                <table class="table table-condensed">
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th>Optional</th>
+                        <th>Default</th>
+                        <th>Example</th>
+                    </tr>
+                    <tr ng-repeat="parameter in route.getPostParameterList()">
+                        <td>{{parameter.getName()}}</td>
+                        <td>{{parameter.getDescription()}}</td>
+                        <td>{{parameter.getType()}} / {{parameter.getDataType()}}</td>
+                        <td>{{parameter.isOptional()}}</td>
+                        <td ng-if="parameter.hasDefaultValue()">{{parameter.getDefaultValue()}}</td>
+                        <td ng-if="!parameter.hasDefaultValue()">No</td>
+                        <td>{{parameter.getExampleData()}}</td>
+                    </tr>
+                </table>
+            </div>
+            <button type="button" class="btn btn-primary" ng-click="runExample(route)">Test</button>
+            <button type="button" class="btn btn-primary" ng-click="clearExample()">Clear</button>
+            <h3>Tags</h3>
+            <span ng-repeat="tag in route.getTagList()" class="label label-default right-5">
+                {{tag.getName()}}
+            </span>
+
+            <div class="panel panel-default top-20">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Example Output</h3>
+                </div>
+                <json-formatter class="panel-body sandbox_output_example" json=testSandboxOutput open="1"></json-formatter>
+            </div>
+
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h2 class="text-center">Sandbox</h2>
+        <blockquote>
+            <p ng-bind-html="sandboxRoute.getUrl() | trust"></p>
+        </blockquote>
+
+        <form>
+            <div ng-if="sandboxRoute.hasUriParameterList()">
+                <h3>Uri params</h3>
+                <div ng-repeat="uriParam in sandboxRouteUriList" class="form-group row">
+                    <input type="checkbox" class="col-sm-1 col-form-label"
+                           ng-model="uriParam.enabled"
+                           ng-change="parseUrl()"
+                           ng-disabled="uriParam.required"
+                    />
+                    <label class="col-sm-2 col-form-label">{{uriParam.name}}</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" placeholder="{{uriParam.name}}"
+                               ng-model="uriParam.value"
+                               ng-change="parseUrl()"
+                               ng-disabled="!uriParam.enabled"
+                        >
+                    </div>
+                </div>
+                <hr>
+            </div>
+
+            <div ng-if="sandboxRoute.hasPostParameterList()">
+                <h3>Post params</h3>
+                <div ng-repeat="uriParam in sandboxRoutePostList" class="form-group row">
+                    <input type="checkbox" class="col-sm-1 col-form-label"
+                           ng-model="uriParam.enabled"
+                           ng-change="checkDefaultValue(uriParam)"
+                           ng-disabled="uriParam.required"
+                    />
+                    <label class="col-sm-2 col-form-label">{{uriParam.name}}</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" placeholder="{{uriParam.name}}"
+                               ng-if="!uriParam.hasListValues"
+                               ng-model="uriParam.value"
+                               ng-disabled="!uriParam.enabled"
+                        >
+                        <select class="form-control"
+                                ng-if="uriParam.hasListValues"
+                                ng-model="uriParam.value"
+                                ng-disabled="!uriParam.enabled">
+                            <option ng-repeat="values in uriParam.listValues" value="{{values.value}}">{{values.value}}</option>
+                        </select>
+                    </div>
+                </div>
+                <hr>
+            </div>
+            <button type="submit" class="btn btn-primary" ng-click="runSandbox(sandboxRoute,sandboxRoutePostList)">Run</button>
+            <button type="submit" class="btn btn-primary" ng-click="resetSandbox()">Reset</button>
+        </form>
+
+        <div class="panel panel-default top-20">
+            <div class="panel-heading">
+                <h3 class="panel-title">Output</h3>
+            </div>
+            <json-formatter class="panel-body sandbox_output_example" json=sandboxOutput open="1"></json-formatter>
+        </div>
+
+    </div>
+</div>

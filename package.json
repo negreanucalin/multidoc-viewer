@@ -1,0 +1,19 @@
+{
+  "name": "multidoc",
+  "version": "1.0.0",
+  "description": "Api generation tool",
+  "main": "index.html",
+  "dependencies": {
+    "angular": "^1.6.1",
+    "angular-ui-router": "^0.3.2",
+    "bootstrap": "^3.3.7",
+    "jquery": "^3.1.1",
+    "jsonformatter": "^0.6.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
