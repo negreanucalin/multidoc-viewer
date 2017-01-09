@@ -187,7 +187,7 @@
             ,
               {
                 "id":9,
-                "name": "1 list Param",
+                "name": "2 list Param",
                 "description": "Post,1 params",
                 "url": "https://jsonplaceholder.typicode.com/posts",
                 "method": "POST",
@@ -238,6 +238,25 @@
                       }
                     ],
                     "default":"value_1"
+                  }
+                ]
+              },
+              {
+                "id":10,
+                "name": "1 Json Param",
+                "description": "Post,1 params",
+                "url": "https://jsonplaceholder.typicode.com/posts",
+                "method": "POST",
+                "response_type":"JSON",
+                "tags":["tag3","tag4"],
+                "params":[
+                  {
+                    "example":"value_1",
+                    "name":"test[caca]",
+                    "type":"post",
+                    "data_type":"json",
+                    "description":"Post text",
+                    "isOptional":true
                   }
                 ]
               }

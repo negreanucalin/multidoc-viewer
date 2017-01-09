@@ -67,8 +67,13 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost', functio
                 method : route.getMethod(),
                 url : this.parseUrl(route.getUrl(), route.getParameterList()),
                 data: params
-            }).then(function mySucces(response) {
-                defer.resolve(response.data);
+            }).then(function mySucces(response, status, headers) {
+                var responseObj = new Response();
+
+                responseObj.setData(response.data);
+                responseObj.setStatus(response.status);
+                responseObj.setResponseHeaders(response.headers());
+                defer.resolve(responseObj);
             }, function myError(response) {
                 defer.reject(response);
             });
@@ -76,8 +81,13 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost', functio
             $http({
                 method : route.getMethod(),
                 url : this.parseUrl(route.getUrl(), route.getParameterList())
-            }).then(function mySucces(response) {
-                defer.resolve(response.data);
+            }).then(function mySucces(response, status, headers) {
+                var responseObj = new Response();
+
+                responseObj.setData(response.data);
+                responseObj.setStatus(response.status);
+                responseObj.setResponseHeaders(response.headers());
+                defer.resolve(response);
             }, function myError(response) {
                 defer.reject(response);
             });

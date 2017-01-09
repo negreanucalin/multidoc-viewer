@@ -128,10 +128,15 @@
 
         <div class="panel panel-default top-20">
             <div class="panel-heading">
-                <h3 class="panel-title">Output</h3>
+                <h3 class="panel-title">Output Response</h3>
             </div>
-            <json-formatter class="panel-body sandbox_output_example" json=sandboxOutput open="1"></json-formatter>
+            <json-formatter class="panel-body sandbox_output_example" json=sandboxOutput.getData() open="1"></json-formatter>
         </div>
-
+        <div class="panel panel-default top-20">
+            <div class="panel-heading">
+                <h3 class="panel-title">Output Headers</h3>
+            </div>
+            <json-formatter class="panel-body sandbox_output_example" json=sandboxOutput.getResponseHeaders() open="1"></json-formatter>
+        </div>
     </div>
 </div>
