@@ -1,25 +1,25 @@
 app.service('visualHelper', function () {
 
     this.getMethodColorByRoute = function (route) {
-        if( route instanceof Route) {
+        if( route instanceof Route || route instanceof NavigationRoute) {
             switch(route.getMethod()) {
                 case 'GET':
-                    return 'label label-primary';
+                    return 'primary';
                     break;
                 case 'PUT':
-                    return 'label label-info';
+                    return 'info';
                     break;
                 case 'POST':
-                    return 'label label-success';
+                    return 'success';
                     break;
                 case 'PATCH':
-                    return 'label label-warning';
+                    return 'warning';
                     break;
                 case 'DELETE':
-                    return 'label label-danger';
+                    return 'danger';
                     break;
                 default:
-                    return 'label label-default';
+                    return 'default';
                     break;
             }
         }
@@ -28,6 +28,21 @@ app.service('visualHelper', function () {
     this.addColorToUrlParameter = function (urlParam) {
         return "<span class='label label-default'>"+urlParam+"</span>";
     };
+
+    /**
+     *
+     * @param {NavigationCategory} category
+     * @returns {boolean}
+     */
+    this.isAtLeastOneRouteVisible = function(category)
+    {
+        for(var i=0; i<category.getRouteList().length;i++){
+            if(category.getRoute(i).isVisible()){
+                return true;
+            }
+        }
+        return false;
+    }
 
 });
 

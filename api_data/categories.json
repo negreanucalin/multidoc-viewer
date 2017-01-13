@@ -251,12 +251,31 @@
                 "tags":["tag3","tag4"],
                 "params":[
                   {
-                    "example":"value_1",
+                    "example":"{'something':3}",
                     "name":"test[caca]",
                     "type":"post",
                     "data_type":"json",
                     "description":"Post text",
-                    "isOptional":true
+                    "isOptional":false
+                  }
+                ]
+              }
+            ,
+              {
+                "id":11,
+                "name": "1 Json Param, no name",
+                "description": "Post,1 params",
+                "url": "https://jsonplaceholder.typicode.com/posts",
+                "method": "POST",
+                "response_type":"JSON",
+                "tags":["tag3","tag4"],
+                "params":[
+                  {
+                    "example":"{\"name\":\"John\", \"age\":31, \"city\":\"New York\" }",
+                    "type":"post",
+                    "data_type":"json",
+                    "description":"Post text",
+                    "isOptional":false
                   }
                 ]
               }

@@ -32,7 +32,6 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost', functio
                 value = null;
             }
             var frontSlash = value!=null && value.length>0?"/":"";
-            console.log(name,value!=null && value.length>0);
             var realValue = value==null?"":value;
             url = url.replace("[:"+name+"]",realValue);
             url = url.replace("[/:"+name+"]",frontSlash+realValue);
@@ -51,6 +50,15 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost', functio
         return list;
     };
 
+    this.getJsonPostVar = function(postVarList) {
+        for(var i=0;i<postVarList.length;i++){
+            if(!postVarList[i].hasName && postVarList[i].isJson){
+                return postVarList[i].value;
+            }
+        }
+        return null;
+    };
+
     /**
      * @param {Route} route
      * @param {Object[]} paramList
@@ -59,17 +67,30 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost', functio
     this.runExample = function (route, paramList) {
         var defer = $q.defer();
         if(route.getMethod() == "POST"){
+            var http = {};
             var params = this.getEnabledPostVarList(paramList);
-            var headers = {'Content-Type':'application/x-www-form-urlencoded'};
-            $http({
-                transformRequest: transformRequestAsFormPost,
-                headers: headers,
-                method : route.getMethod(),
-                url : this.parseUrl(route.getUrl(), route.getParameterList()),
-                data: params
-            }).then(function mySucces(response, status, headers) {
+            var headers = {};
+            var jsonParam = this.getJsonPostVar(paramList);
+            if(jsonParam !== null) {//for json post var with no name
+                headers = {'Content-Type':'application/json; charset=utf-8'};
+                http = $http({
+                    headers: headers,
+                    method : route.getMethod(),
+                    url : this.parseUrl(route.getUrl(), route.getParameterList()),
+                    data: JSON.parse(jsonParam)
+                });
+            } else {
+                headers = {'Content-Type':'application/x-www-form-urlencoded'};
+                http = $http({
+                    transformRequest: transformRequestAsFormPost,
+                    headers: headers,
+                    method : route.getMethod(),
+                    url : this.parseUrl(route.getUrl(), route.getParameterList()),
+                    data: params
+                })
+            }
+            http.then(function mySucces(response, status, headers) {
                 var responseObj = new Response();
-
                 responseObj.setData(response.data);
                 responseObj.setStatus(response.status);
                 responseObj.setResponseHeaders(response.headers());
@@ -83,7 +104,6 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost', functio
                 url : this.parseUrl(route.getUrl(), route.getParameterList())
             }).then(function mySucces(response, status, headers) {
                 var responseObj = new Response();
-
                 responseObj.setData(response.data);
                 responseObj.setStatus(response.status);
                 responseObj.setResponseHeaders(response.headers());

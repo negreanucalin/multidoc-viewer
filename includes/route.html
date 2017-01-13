@@ -65,9 +65,14 @@
                 <div class="panel-heading">
                     <h3 class="panel-title">Example Output</h3>
                 </div>
-                <json-formatter class="panel-body sandbox_output_example" json=testSandboxOutput open="1"></json-formatter>
+                <json-formatter class="panel-body sandbox_output_example" json=testSandboxOutput.getData() open="1"></json-formatter>
             </div>
-
+            <div class="panel panel-default top-20">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Output Headers</h3>
+                </div>
+                <json-formatter class="panel-body sandbox_output_example" json=testSandboxOutput.getResponseHeaders() open="1"></json-formatter>
+            </div>
         </div>
     </div>
     <div class="col-md-6">
@@ -99,24 +104,29 @@
 
             <div ng-if="sandboxRoute.hasPostParameterList()">
                 <h3>Post params</h3>
-                <div ng-repeat="uriParam in sandboxRoutePostList" class="form-group row">
+                <div ng-repeat="postPram in sandboxRoutePostList" class="form-group row">
                     <input type="checkbox" class="col-sm-1 col-form-label"
-                           ng-model="uriParam.enabled"
-                           ng-change="checkDefaultValue(uriParam)"
-                           ng-disabled="uriParam.required"
+                           ng-model="postPram.enabled"
+                           ng-change="checkDefaultValue(postPram)"
+                           ng-disabled="postPram.required"
                     />
-                    <label class="col-sm-2 col-form-label">{{uriParam.name}}</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control" placeholder="{{uriParam.name}}"
-                               ng-if="!uriParam.hasListValues"
-                               ng-model="uriParam.value"
-                               ng-disabled="!uriParam.enabled"
+                    <label ng-class="(postPram.hasName) ? 'col-sm-2 col-form-label' : 'col-form-label'">{{postPram.name}}</label>
+                    <div ng-class="(postPram.hasName) ? 'col-sm-9' : 'col-sm-11'">
+                        <textarea rows="3" class="form-control" placeholder="{{postPram.name}}"
+                               ng-if="!postPram.hasListValues && postPram.isJson"
+                               ng-model="postPram.value"
+                               ng-disabled="!postPram.enabled"
+                        ></textarea>
+                        <input type="text" class="form-control" placeholder="{{postPram.name}}"
+                               ng-if="!postPram.hasListValues && !postPram.isJson"
+                               ng-model="postPram.value"
+                               ng-disabled="!postPram.enabled"
                         >
                         <select class="form-control"
-                                ng-if="uriParam.hasListValues"
-                                ng-model="uriParam.value"
-                                ng-disabled="!uriParam.enabled">
-                            <option ng-repeat="values in uriParam.listValues" value="{{values.value}}">{{values.value}}</option>
+                                ng-if="postPram.hasListValues"
+                                ng-model="postPram.value"
+                                ng-disabled="!postPram.enabled">
+                            <option ng-repeat="values in postPram.listValues" value="{{values.value}}">{{values.value}}</option>
                         </select>
                     </div>
                 </div>

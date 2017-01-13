@@ -39,7 +39,9 @@ app.controller("routeCtrl", ['$scope','visualHelper','routeService','sandboxServ
                 "name":list[i].getName(),
                 "value":list[i].getExampleData(),
                 "required":!list[i].isOptional(),
-                "enabled":true
+                "enabled":true,
+                "isJson":list[i].isJsonParam(),
+                "hasName":list[i].hasName()
             });
         }
         sandboxService.runExample(route,sandboxRoutePostList).then(function(reponse){
@@ -103,7 +105,10 @@ app.controller("routeCtrl", ['$scope','visualHelper','routeService','sandboxServ
                 "has_default":list[i].hasDefaultValue(),
                 "default":list[i].getDefaultValue(),
                 "hasListValues":list[i].hasPossibleValues(),
-                "listValues":list[i].getPossibleValues()
+                "listValues":list[i].getPossibleValues(),
+                //Json type param
+                "isJson":list[i].isJsonParam(),
+                "hasName":list[i].hasName()
             });
         }
         $scope.parseUrl();

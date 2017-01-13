@@ -9,21 +9,24 @@
 
 <script type="text/ng-template" id="categoryTree">
     <hr>
-    <a>{{ category.getName() }}
-        <span class="badge" ng-if="category.hasCategoryList()">{{category.getCategoryListCount()}}</span>
-        <span class="badge" ng-if="category.hasRouteList()">{{category.getRouteListCount()}}</span>
-    </a>
-    <ul class="nav nav-pills nav-stacked" ng-if="category.hasCategoryList()">
-        <li role="presentation" ng-repeat="category in category.getCategoryList()" ng-include="'categoryTree'">
-        </li>
-    </ul>
-    <ul class="nav nav-pills nav-stacked" ng-if="category.hasRouteList()">
-        <li role="presentation"
-            ng-repeat="route in category.getRouteList()"
-            ng-class="{'active': selectedMenu == route.getId()}">
-            <a ui-sref="routeDetails({routeId:route.getId()})">
-                <p ng-class="'label label-'+visualHelper.getMethodColorByRoute(route)" >{{route.getMethod()}}</p> {{route.getName()}}
-            </a>
-        </li>
-    </ul>
+    <div ng-if="category.isVisible()">
+        <a ng-click="toggleVisibility(category)">{{ category.getName() }}
+            <span class="badge" ng-if="category.hasCategoryList()">{{category.getCategoryListCount()}}</span>
+            <span class="badge" ng-if="category.hasRouteList()">{{category.getRouteListCount()}}</span>
+        </a>
+        <ul class="nav nav-pills nav-stacked" ng-if="category.hasCategoryList()">
+            <li role="presentation" ng-repeat="category in category.getCategoryList()" ng-include="'categoryTree'">
+            </li>
+        </ul>
+        <ul class="nav nav-pills nav-stacked" ng-if="category.hasRouteList()">
+            <li role="presentation"
+                ng-if="visualHelper.isAtLeastOneRouteVisible(category)"
+                ng-repeat="route in category.getRouteList()"
+                ng-class="{'active': selectedMenu == route.getId()}">
+                <a ui-sref="routeDetails({routeId:route.getId()})">
+                    <p ng-class="'label label-'+visualHelper.getMethodColorByRoute(route)" >{{route.getMethod()}}</p> {{route.getName()}}
+                </a>
+            </li>
+        </ul>
+    </div>
 </script>

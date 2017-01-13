@@ -10,6 +10,8 @@ var Param = function() {
     this.has_default_value = false;
     this.possibleValueList = [];
     this.hasPossibleValueList = false;
+    this.isJson = false;
+    this.thisParamHasName = false;
 
     this.setName = function(name){
         this.name = name;
@@ -101,6 +103,21 @@ var Param = function() {
         return this;
     };
 
+    this.setIsJsonParam = function(isJson){
+        this.isJson = isJson;
+        return this;
+    };
 
+    this.isJsonParam = function(){
+        return this.isJson;
+    };
 
+    this.setHasName = function(hasName){
+        this.thisParamHasName = hasName;
+        return this;
+    };
+
+    this.hasName = function(hasName){
+        return this.thisParamHasName;
+    };
 };

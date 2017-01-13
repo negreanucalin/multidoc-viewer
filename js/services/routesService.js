@@ -6,7 +6,6 @@ app.service('routesService',['$q','$http','routesFactory', function ($q,$http,ro
             method : "GET",
             url : "api_data/routes.json"
         }).then(function mySucces(response) {
-            console.log("Ye",response);
             defer.resolve(routesFactory.buildListFromJson(response.data.category));
         }, function myError(response) {
             defer.reject(response);

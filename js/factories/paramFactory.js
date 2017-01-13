@@ -2,7 +2,6 @@ app.service('paramFactory', function () {
 
     this.buildParamFromJson = function (paramJSON) {
         var param = new Param();
-        param.setName(paramJSON.name);
         param.setDescription(paramJSON.description);
         param.setType(paramJSON.type);
         param.setIsOptional(paramJSON.isOptional);
@@ -15,6 +14,15 @@ app.service('paramFactory', function () {
         if(paramJSON.listOption){
             param.setHasPossibleValues(true);
             param.setPossibleValues(paramJSON.listOption);
+        }
+        if(paramJSON.data_type == 'json'){
+            param.setIsJsonParam(true);
+            if(paramJSON.name){
+                param.setName(paramJSON.name);
+                param.setHasName(true);
+            }
+        } else {
+            param.setName(paramJSON.name);
         }
         return param;
     };

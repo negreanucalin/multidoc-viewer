@@ -1,10 +1,11 @@
-var Category = function() {
+var NavigationCategory = function() {
 
     this.id = "";
     this.name = "";
     this.routeList = [];
     this.categoryList = [];
     this.has_category_list = false;
+    this.is_visible = false;
 
     this.setId = function(id){
         this.id = id;
@@ -19,6 +20,7 @@ var Category = function() {
         this.routeList.push(route);
         return this;
     };
+
 
     this.setRouteList = function(list){
         this.routeList = list;
@@ -51,6 +53,10 @@ var Category = function() {
         return this.categoryList ;
     };
 
+    this.getCategory = function(i){
+        return this.categoryList[i];
+    };
+
     this.getCategoryListCount = function(){
         return this.categoryList.length ;
     };
@@ -77,6 +83,16 @@ var Category = function() {
     this.getName = function(){
         return this.name ;
     };
+
+    this.setIsVisible = function(isVisible){
+        this.is_visible = isVisible;
+        return this;
+    };
+
+    this.isVisible = function(){
+        return this.is_visible ;
+    };
+
 };
 
 
