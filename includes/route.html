@@ -1,4 +1,4 @@
-<div class="row col-md-10">
+<div class="row col-md-10 col-lg-9">
     <div class="col-md-6">
         <!--<ol class="breadcrumb">-->
             <!--<li><a href="#">[Route_category]</a></li>-->
@@ -57,7 +57,7 @@
             <button type="button" class="btn btn-primary" ng-click="runExample(route)">Test</button>
             <button type="button" class="btn btn-primary" ng-click="clearExample()">Clear</button>
             <h3>Tags</h3>
-            <span ng-repeat="tag in route.getTagList()" class="label label-default right-5">
+            <span ng-repeat="tag in route.getTagList()" class="label label-default right-5 hand-cursor" ng-click="addTag(tag)">
                 {{tag.getName()}}
             </span>
 
@@ -65,6 +65,7 @@
                 <div class="panel-heading">
                     <h3 class="panel-title">Example Output</h3>
                 </div>
+                <h3 ng-if="testSandboxOutput.getStatus() != null">Status: {{testSandboxOutput.getStatus()}}</h3>
                 <json-formatter class="panel-body sandbox_output_example" json=testSandboxOutput.getData() open="1"></json-formatter>
             </div>
             <div class="panel panel-default top-20">
@@ -140,6 +141,7 @@
             <div class="panel-heading">
                 <h3 class="panel-title">Output Response</h3>
             </div>
+            <h3 ng-if="sandboxOutput.getStatus() != null">Status: {{sandboxOutput.getStatus()}}</h3>
             <json-formatter class="panel-body sandbox_output_example" json=sandboxOutput.getData() open="1"></json-formatter>
         </div>
         <div class="panel panel-default top-20">

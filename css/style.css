@@ -21,6 +21,20 @@ body {
 .centered {
 	text-align: center;
 }
+.container-fluid {
+	margin-bottom:100px;
+}
+footer {
+	position: fixed;
+	bottom: 0;
+	width: 50%;
+	background-color: #101010;
+	padding: 12px;
+}
+.color-text-white{
+	color:white;
+}
+.hand-cursor{ cursor: pointer; cursor: hand; }
 .vertical-center {
 	min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
 	min-height: 100vh; /* These two lines are counted as one :-)       */

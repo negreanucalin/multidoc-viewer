@@ -5,6 +5,7 @@ var Category = function() {
     this.routeList = [];
     this.categoryList = [];
     this.has_category_list = false;
+    this.needs_authentication = false;
 
     this.setId = function(id){
         this.id = id;
@@ -76,6 +77,15 @@ var Category = function() {
 
     this.getName = function(){
         return this.name ;
+    };
+
+    this.setNeedsAuthentication = function(isNeeded){
+        this.needs_authentication = isNeeded;
+        return this;
+    };
+
+    this.needsAuthentication = function(){
+        return this.needs_authentication ;
     };
 };
 

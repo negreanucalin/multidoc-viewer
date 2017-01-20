@@ -10,6 +10,7 @@ var NavigationRoute = function() {
     this.url = "";
     this.response_type = "";
     this.is_visible = false;
+    this.needs_authentication = false;
 
     this.setId = function(id){
         this.id = id;
@@ -75,6 +76,10 @@ var NavigationRoute = function() {
 
     this.setTagList = function(tagList){
         return this.tagList = tagList;
+    };
+
+    this.getTag = function(i){
+        return this.tagList[i];
     };
 
     this.getParameterList = function(){
@@ -143,6 +148,15 @@ var NavigationRoute = function() {
 
     this.isVisible = function(){
         return this.is_visible ;
+    };
+
+    this.setNeedsAuthentication = function(isNeeded){
+        this.needs_authentication = isNeeded;
+        return this;
+    };
+
+    this.needsAuthentication = function(){
+        return this.needs_authentication ;
     };
 
 };

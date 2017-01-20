@@ -2,7 +2,7 @@ var Response = function() {
 
     this.reponseHeaders = [];
     this.data = {};
-    this.status = 200;
+    this.status = null;
 
     this.setData = function(data){
         this.data = data;

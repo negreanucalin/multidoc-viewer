@@ -6,6 +6,9 @@ var NavigationCategory = function() {
     this.categoryList = [];
     this.has_category_list = false;
     this.is_visible = false;
+    this.is_parent = false;
+    this.parentIdList = [];
+    this.needs_authentication = false;
 
     this.setId = function(id){
         this.id = id;
@@ -33,6 +36,10 @@ var NavigationCategory = function() {
 
     this.getRoute = function(index){
         return this.routeList[index] ;
+    };
+
+    this.removeRoute = function(index){
+        return this.routeList.splice(index,1);
     };
 
     this.hasRouteList = function(){
@@ -65,7 +72,6 @@ var NavigationCategory = function() {
         return this.routeList.length ;
     };
 
-
     this.hasCategoryList = function(){
         return this.has_category_list;
     };
@@ -92,6 +98,40 @@ var NavigationCategory = function() {
     this.isVisible = function(){
         return this.is_visible ;
     };
+
+    this.setIsParent = function(isParent){
+        this.is_parent = isParent;
+        return this;
+    };
+
+    this.isParent = function(){
+        return this.is_parent ;
+    };
+
+
+    this.addParentId = function(parentId){
+        this.parentIdList.push(parentId);
+        return this;
+    };
+
+    this.getParentIdList = function(){
+        return this.parentIdList ;
+    };
+
+    this.setParentIdList = function(parentList){
+        this.parentIdList =parentList;
+        return this.parentIdList;
+    };
+
+    this.setNeedsAuthentication = function(isNeeded){
+        this.needs_authentication = isNeeded;
+        return this;
+    };
+
+    this.needsAuthentication = function(){
+        return this.needs_authentication ;
+    };
+
 
 };
 

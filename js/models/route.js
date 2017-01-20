@@ -9,6 +9,8 @@ var Route = function() {
     this.category = {};
     this.url = "";
     this.response_type = "";
+    this.needs_authentication = false;
+
 
     this.setId = function(id){
         this.id = id;
@@ -72,6 +74,10 @@ var Route = function() {
         return this.tagList;
     };
 
+    this.getTag = function(i){
+        return this.tagList[i];
+    };
+
     this.setTagList = function(tagList){
         return this.tagList = tagList;
     };
@@ -97,6 +103,10 @@ var Route = function() {
         return this.response_type ;
     };
 
+    /**
+     *
+     * @returns {Param[]}
+     */
     this.getUriParameterList = function(){
         var list = [];
         for(var i=0; i<this.parameterList.length;i++){
@@ -135,7 +145,14 @@ var Route = function() {
         return false;
     };
 
+    this.setNeedsAuthentication = function(isNeeded){
+        this.needs_authentication = isNeeded;
+        return this;
+    };
 
+    this.needsAuthentication = function(){
+        return this.needs_authentication ;
+    };
 };
 
 

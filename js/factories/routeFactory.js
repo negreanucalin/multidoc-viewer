@@ -11,6 +11,10 @@ app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,pa
         if(routesJSON.tags){
             route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
         }
+        route.setNeedsAuthentication(category.needsAuthentication());
+        if(typeof routesJSON.needsAuthentication != "undefined"){
+            route.setNeedsAuthentication(routesJSON.needsAuthentication);
+        }
         route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
         route.setCategory(category);
         return route;
@@ -25,7 +29,7 @@ app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,pa
     };
 
 
-    this.buildNavigationRouteFromJson = function (routesJSON,category) {
+    this.buildNavigationRouteFromJson = function (routesJSON, category) {
         var route = new NavigationRoute();
         route.setName(routesJSON.name);
         route.setDescription(routesJSON.description);
@@ -35,6 +39,11 @@ app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,pa
         route.setId(routesJSON.id);
         if(routesJSON.tags){
             route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
+        }
+        route.setNeedsAuthentication(category.needsAuthentication());
+        //route overrides
+        if(typeof routesJSON.needsAuthentication != "undefined"){
+            route.setNeedsAuthentication(routesJSON.needsAuthentication);
         }
         route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
         route.setCategory(category);

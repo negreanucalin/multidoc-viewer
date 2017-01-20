@@ -1,51 +1,6 @@
 {
     "categoryList":[
       {
-        "id":1,
-        "name":"Category 1",
-        "routes":
-          [
-            {
-              "id":1,
-              "name": "Some route 1",
-              "description": "Some desc 1",
-              "url": "https://jsonplaceholder.typicode.com[/:type]",
-              "method": "GET",
-              "response_type":"JSON",
-              "params":[
-                {
-                  "example":"posts",
-                  "name":"type",
-                  "type":"uri",
-                  "data_type":"string",
-                  "description":"Some desc",
-                  "isOptional":true
-                }
-              ],
-              "tags":["tag1","tag2","tag3","tag4","tag5"]
-            },
-            {
-              "id":2,
-              "name": "Some route 2",
-              "description": "Some desc 2",
-              "url": "http://someapi.com/v1/route2",
-              "method": "POST",
-              "response_type":"JSON",
-              "params":[
-                {
-                  "example":12,
-                  "name":"xx",
-                  "type":"post",
-                  "data_type":"int",
-                  "description":"Some desc",
-                  "isOptional":false
-                }
-              ],
-              "tags":["tag3","tag4"]
-            }
-          ]
-      },
-      {
         "id":2,
         "name":"Category 2",
         "categoryList":[
@@ -280,6 +235,98 @@
                 ]
               }
             ]
+          }
+        ]
+      },
+      {
+        "id":1,
+        "name":"Category 1",
+        "routes":
+          [
+            {
+              "id":1,
+              "name": "Some route 1",
+              "description": "Some desc 1",
+              "url": "https://jsonplaceholder.typicode.com[/:type]",
+              "method": "GET",
+              "response_type":"JSON",
+              "params":[
+                {
+                  "example":"posts",
+                  "name":"type",
+                  "type":"uri",
+                  "data_type":"string",
+                  "description":"Some desc",
+                  "isOptional":true
+                }
+              ],
+              "tags":["tag1","tag2","tag3","tag4","tag5"]
+            },
+            {
+              "id":2,
+              "name": "Some route 2",
+              "description": "Some desc 2",
+              "url": "https://jsonplaceholder.typicode.com/posts",
+              "method": "POST",
+              "response_type":"JSON",
+              "params":[
+                {
+                  "example":12,
+                  "name":"xx",
+                  "type":"post",
+                  "data_type":"int",
+                  "description":"Some desc",
+                  "isOptional":false
+                }
+              ],
+              "tags":["tag3","tag4"]
+            }
+          ]
+      },
+      {
+        "id":4,
+        "name":"Category 4",
+        "needsAuthentication":true,
+        "routes":
+        [
+          {
+            "id":16,
+            "name": "Some route 1",
+            "description": "Some desc 1",
+            "url": "https://jsonplaceholder.typicode.com[/:type]",
+            "method": "GET",
+            "response_type":"JSON",
+            "needsAuthentication":false,
+            "params":[
+              {
+                "example":"posts",
+                "name":"type",
+                "type":"uri",
+                "data_type":"string",
+                "description":"Some desc",
+                "isOptional":true
+              }
+            ],
+            "tags":["tag1","tag2","tag3","tag4","tag5"]
+          },
+          {
+            "id":17,
+            "name": "Some route 2",
+            "description": "Some desc 2",
+            "url": "https://jsonplaceholder.typicode.com/posts",
+            "method": "POST",
+            "response_type":"JSON",
+            "params":[
+              {
+                "example":12,
+                "name":"xx",
+                "type":"post",
+                "data_type":"int",
+                "description":"Some desc",
+                "isOptional":false
+              }
+            ],
+            "tags":["tag3","tag4","M F"]
           }
         ]
       }

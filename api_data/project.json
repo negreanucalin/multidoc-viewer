@@ -1,4 +1,6 @@
 {
 	"name":"Awesome project",
-	"description":"Some super awesome description"
+	"description":"Some super awesome description",
+	"version":"1.0",
+	"buildDate":13425632
 }

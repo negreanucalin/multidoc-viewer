@@ -1,18 +1,23 @@
-<div class="col-md-2">
+<div class="col-md-2 col-lg-3">
     <ul class="nav nav-pills nav-stacked">
-        <li role="presentation" ng-class="{'active': selectedMenu == 'project_details'}">
+        <li ng-if="!isSearchResult" role="presentation" ng-class="{'active': selectedMenu == 'project_details'}">
             <a ui-sref="projectDetails">Project Overview</a>
         </li>
-        <li role="presentation" ng-repeat="category in categoryList" ng-include="'categoryTree'"></li>
+        {{parentList = []; ""}}
+
+        <li role="presentation" ng-if="!isSearchResult" ng-repeat="category in categoryList" ng-include="'categoryTree'"></li>
+        <li role="presentation" ng-if="isSearchResult" ng-repeat="category in categoryList" ng-include="'searchCategoryTree'"></li>
     </ul>
 </div>
 
 <script type="text/ng-template" id="categoryTree">
-    <hr>
     <div ng-if="category.isVisible()">
-        <a ng-click="toggleVisibility(category)">{{ category.getName() }}
-            <span class="badge" ng-if="category.hasCategoryList()">{{category.getCategoryListCount()}}</span>
-            <span class="badge" ng-if="category.hasRouteList()">{{category.getRouteListCount()}}</span>
+        <hr>
+        <a ng-click="toggleVisibility(category)">
+            <div class="hand-cursor">{{ category.getName() }}
+                <span class="badge" ng-if="category.hasCategoryList()">{{category.getCategoryListCount()}}</span>
+                <span class="badge" ng-if="category.hasRouteList()">{{category.getRouteListCount()}}</span>
+            </div>
         </a>
         <ul class="nav nav-pills nav-stacked" ng-if="category.hasCategoryList()">
             <li role="presentation" ng-repeat="category in category.getCategoryList()" ng-include="'categoryTree'">
@@ -23,8 +28,42 @@
                 ng-if="visualHelper.isAtLeastOneRouteVisible(category)"
                 ng-repeat="route in category.getRouteList()"
                 ng-class="{'active': selectedMenu == route.getId()}">
-                <a ui-sref="routeDetails({routeId:route.getId()})">
-                    <p ng-class="'label label-'+visualHelper.getMethodColorByRoute(route)" >{{route.getMethod()}}</p> {{route.getName()}}
+                <a ui-sref="routeDetails({routeId:route.getId(),parents:category.getParentIdList().join('$')})">
+                    <p ng-class="'label label-'+visualHelper.getMethodColorByRoute(route)" >
+                        {{route.getMethod()}}
+                    </p>
+                    {{route.getName()}}
+                    <span ng-if="route.needsAuthentication()" class="glyphicon glyphicon-exclamation-sign"></span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</script>
+
+<script type="text/ng-template" id="searchCategoryTree">
+    <div ng-if="category.isVisible()">
+        <hr>
+        <a ng-click="toggleVisibility(category)">
+            <div class="hand-cursor">{{ category.getName() }}
+                <span class="badge" ng-if="category.hasCategoryList()">{{category.getCategoryListCount()}}</span>
+                <span class="badge" ng-if="category.hasRouteList()">{{category.getRouteListCount()}}</span>
+            </div>
+        </a>
+        <ul class="nav nav-pills nav-stacked" ng-if="category.hasCategoryList()">
+            <li role="presentation" ng-repeat="category in category.getCategoryList()" ng-include="'searchCategoryTree'">
+            </li>
+        </ul>
+        <ul class="nav nav-pills nav-stacked" ng-if="category.hasRouteList()">
+            <li role="presentation"
+                ng-if="visualHelper.isAtLeastOneRouteVisible(category)"
+                ng-repeat="route in category.getRouteList()"
+                ng-class="{'active': selectedMenu == route.getId()}">
+                <a ui-sref="tagSearchRouteDetails({routeId:route.getId(),parents:category.getParentIdList().join('$')})">
+                    <p ng-class="'label label-'+visualHelper.getMethodColorByRoute(route)" >
+                        {{route.getMethod()}}
+                    </p>
+                    {{route.getName()}}
+                    <span ng-if="route.needsAuthentication()" class="glyphicon glyphicon-exclamation-sign"></span>
                 </a>
             </li>
         </ul>

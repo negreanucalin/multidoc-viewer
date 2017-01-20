@@ -1,6 +1,6 @@
 
-app.controller("routeCtrl", ['$scope','visualHelper','routeService','sandboxService','$stateParams',
-    function ($scope,visualHelper,routeService,sandboxService,$stateParams) {
+app.controller("RouteController", ['$scope','visualHelper','routeService','sandboxService','routeControllerHelper','tagService','$stateParams','$rootScope','$state',
+    function ($scope,visualHelper,routeService,sandboxService,routeControllerHelper,tagService,$stateParams,$rootScope,$state) {
 
     $scope.testSandboxOutput = {};
     $scope.sandboxOutput = {};
@@ -19,36 +19,52 @@ app.controller("routeCtrl", ['$scope','visualHelper','routeService','sandboxServ
 
     $scope.visualHelper = visualHelper;
     $scope.sandboxService = sandboxService;
+    $scope.authorization = {};
 
-    routeService.getRouteById($stateParams.routeId).then(
-        function(route) {
-            $scope.route = route;
-            $scope.resetSandbox();
+    $scope.tagList = tagService.getTagList();
+
+    $scope.$on('authorizationChanged',function(event,authorization){
+        $scope.authorization = authorization;
+    });
+
+    if($state.is('routeDetails') || $state.is('tagSearchRouteDetails')){
+        routeService.getRouteById($stateParams.routeId).then(
+            function(route) {
+                $scope.route = route;
+                $scope.resetSandbox();
+            }
+        );
+    }
+
+    /**
+     *
+     * @param route
+     */
+    $scope.validateAuthorization = function(route){
+        if(route.needsAuthentication()){
+            if(!angular.isDefined($scope.authorization.token) || $scope.authorization.token.length == 0){
+                throw "Route needs authorization";
+            }
         }
-    );
+    };
 
     /**
      *
      * @param {Route} route
      */
     $scope.runExample = function(route) {
-        var list = $scope.sandboxRoute.getPostParameterList();
-        var sandboxRoutePostList = [];
-        for(var i=0; i<list.length;i++){
-            sandboxRoutePostList.push({
-                "name":list[i].getName(),
-                "value":list[i].getExampleData(),
-                "required":!list[i].isOptional(),
-                "enabled":true,
-                "isJson":list[i].isJsonParam(),
-                "hasName":list[i].hasName()
+        try {
+            $scope.validateAuthorization(route);
+            var list = $scope.sandboxRoute.getPostParameterList();
+            var sandboxRoutePostList = routeControllerHelper.convertPostParameterList(list);
+            sandboxService.runExample(route, sandboxRoutePostList, $scope.authorization).then(function (reponse) {
+                if (route.getResponseType() == "JSON") {
+                    $scope.testSandboxOutput = reponse;
+                }
             });
+        } catch(error) {
+            alert(error);
         }
-        sandboxService.runExample(route,sandboxRoutePostList).then(function(reponse){
-            if(route.getResponseType() == "JSON") {
-                $scope.testSandboxOutput = reponse;
-            }
-        });
     };
 
     $scope.clearExample = function() {
@@ -70,49 +86,51 @@ app.controller("routeCtrl", ['$scope','visualHelper','routeService','sandboxServ
      * @param {Route} route
      */
     $scope.runSandbox = function(route, postParamList) {
-        sandboxService.runExample(route, postParamList).then(function(reponse){
-            if(route.getResponseType() == "JSON") {
-                $scope.sandboxOutput = reponse;
-            }
-        });
+        try{
+            $scope.validateAuthorization(route);
+            sandboxService.runExample(route, postParamList, $scope.authorization).then(function(reponse){
+                if(route.getResponseType() == "JSON") {
+                    $scope.sandboxOutput = reponse;
+                }
+            });
+        } catch(error) {
+            alert(error);
+        }
     };
 
     $scope.resetSandbox = function() {
         $scope.sandboxOutput = {};
-        $scope.sandboxRouteUriList = [];
-        $scope.sandboxRoutePostList = [];
         $scope.sandboxRoute = angular.copy($scope.route);
         var list = $scope.sandboxRoute.getUriParameterList();
-        for(var i=0; i<list.length;i++){
-            $scope.sandboxRouteUriList.push({
-                "name":list[i].getName(),
-                "value":list[i].getExampleData(),
-                "required":!list[i].isOptional(),
-                "enabled":true,
-                "has_default":list[i].hasDefaultValue(),
-                "default":list[i].getDefaultValue(),
-                "hasListValues":list[i].hasPossibleValues(),
-                "listValues":list[i].getPossibleValues()
-            });
-        }
+        $scope.sandboxRouteUriList = routeControllerHelper.convertUriParameterList(list);
         list = $scope.sandboxRoute.getPostParameterList();
-        for(i=0; i<list.length;i++){
-            $scope.sandboxRoutePostList.push({
-                "name":list[i].getName(),
-                "value":list[i].getExampleData(),
-                "required":!list[i].isOptional(),
-                "enabled":true,
-                "has_default":list[i].hasDefaultValue(),
-                "default":list[i].getDefaultValue(),
-                "hasListValues":list[i].hasPossibleValues(),
-                "listValues":list[i].getPossibleValues(),
-                //Json type param
-                "isJson":list[i].isJsonParam(),
-                "hasName":list[i].hasName()
-            });
-        }
+        $scope.sandboxRoutePostList = routeControllerHelper.convertPostParameterList(list);
         $scope.parseUrl();
-    }
+    };
+
+    /**
+     *
+     * @param {Tag} tag
+     */
+    $scope.tagIsAlreadyAdded = function(tag){
+      for(var i=0; i<$scope.tagList.length; i++) {
+          if($scope.tagList[i].getName() == tag.getName()) {
+              return true;
+          }
+      }
+        return false;
+    };
+
+    /**
+     *
+     * @param {Tag} tag
+     */
+    $scope.addTag = function(tag){
+        if(!$scope.tagIsAlreadyAdded(tag)){
+            $scope.tagList.push(tag);
+            $rootScope.$broadcast('tagListChanged', $scope.tagList);
+        }
+    };
 
 
 }]);
