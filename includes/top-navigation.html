@@ -7,12 +7,18 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a ui-sref="projectDetails" class="navbar-brand" href="#">{{project.getName()}} v{{project.getVersion()}}</a>
+            <a ui-sref="projectDetails" class="navbar-brand" href="#">{{project.getName()}} <small>v{{project.getVersion()}}</small></a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <form class="navbar-form navbar-right">
                 <div class="form-group" >
-                    
+                    <label class="color-text-white" for="environment">Environments</label>
+                    <select class="form-control" id="environment"
+                            ng-model="environment.url"
+                            ng-change="sendEnvironmentChange()"
+                            ng-disabled="!project.hasEnvironmentList()">
+                        <option ng-repeat="env in project.getEnvironmentList()" value="{{env.getUrl()}}">{{env.getName()}}</option>
+                    </select>
                     <input type="text" placeholder="Authorization" class="form-control" value="Authorization"
                            ng-disabled="!route.needsAuthentication()"
                            ng-model="authorization.header"

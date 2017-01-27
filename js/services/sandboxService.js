@@ -17,13 +17,20 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
         return url;
     };
 
+    this.parseEnvironment = function(url, environment){
+        if(environment instanceof Environment){
+            return url.replace("{{environment}}",environment.getUrl());
+        }
+    };
+
     /**
      *
      * @param {string} url
      * @param {Param[]} parameters
      * @returns {*}
      */
-    this.parseSandboxUrl = function(url, parameters) {
+    this.parseSandboxUrl = function(url, parameters,environment) {
+        url = this.parseEnvironment(url,environment);
         for(var i=0; i<parameters.length; i++){
             var value = null;
             var name = parameters[i].name;

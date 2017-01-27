@@ -3,6 +3,8 @@ var Project = function() {
     this.name = "";
     this.description = "";
     this.version = 0;
+    this.has_environments = false;
+    this.environmentList = [];
 
     this.setName = function(name){
         this.name = name;
@@ -11,6 +13,32 @@ var Project = function() {
 
     this.getName = function(){
         return this.name ;
+    };
+
+    this.setEnvironmentList = function(envList){
+        this.environmentList = envList;
+        return this;
+    };
+
+    this.addEnvironment = function(env){
+        this.environmentList.push(env);
+    };
+
+    this.getEnvironmentList = function(){
+        return this.environmentList;
+    };
+
+    this.getEnvironment = function(i){
+        return this.environmentList[i];
+    };
+
+    this.setHasEnvironmentList = function(hasEnv){
+        this.has_environments = hasEnv;
+        return this;
+    };
+
+    this.hasEnvironmentList = function(){
+        return this.has_environments;
     };
 
     this.setBuildDate = function(bd){

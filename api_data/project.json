@@ -1,6 +1,1 @@
-{
-	"name":"Awesome project",
-	"description":"Some super awesome description",
-	"version":"1.0",
-	"buildDate":13425632
-}
+{"name":"My Awesome project","description":"Some awesome description","version":1,"buildDate":1485509731,"environments":[{"name":"default","url":"https:\/\/jsonplaceholder.typicode.com"},{"name":"preprod","url":"https:\/\/preprod.jsonplaceholder.typicode.com"}]}

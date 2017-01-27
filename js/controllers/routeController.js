@@ -1,6 +1,6 @@
 
-app.controller("RouteController", ['$scope','visualHelper','routeService','sandboxService','routeControllerHelper','tagService','$stateParams','$rootScope','$state',
-    function ($scope,visualHelper,routeService,sandboxService,routeControllerHelper,tagService,$stateParams,$rootScope,$state) {
+app.controller("RouteController", ['$scope','localStorageService','visualHelper','routeService','sandboxService','routeControllerHelper','tagService','$stateParams','$rootScope','$state',
+    function ($scope,localStorageService,visualHelper,routeService,sandboxService,routeControllerHelper,tagService,$stateParams,$rootScope,$state) {
 
     $scope.testSandboxOutput = {};
     $scope.sandboxOutput = {};
@@ -9,28 +9,56 @@ app.controller("RouteController", ['$scope','visualHelper','routeService','sandb
      * @type {Route}
      */
     $scope.route = {};
+    //For environment parsing we need to store the original
+    $scope.originalRouteUrl = "";
     /**
      *
      * @type {Route}
      */
     $scope.sandboxRoute = {};
+    //For environment parsing we need to store the original
+    $scope.originalSandBoxRouteUrl = "";
     $scope.sandboxRouteUriList = [];
     $scope.sandboxRoutePostList = [];
 
     $scope.visualHelper = visualHelper;
     $scope.sandboxService = sandboxService;
     $scope.authorization = {};
-
+    $scope.environment = {};
     $scope.tagList = tagService.getTagList();
 
     $scope.$on('authorizationChanged',function(event,authorization){
         $scope.authorization = authorization;
     });
 
+    $scope.parseUrl = function(){
+        $scope.route.setUrl(
+            sandboxService.parseEnvironment(
+                $scope.originalRouteUrl,
+                $scope.environment)
+        );
+        $scope.sandboxRoute.setUrl(
+            sandboxService.parseSandboxUrl(
+                $scope.originalSandBoxRouteUrl,
+                $scope.sandboxRouteUriList,
+                $scope.environment
+            )
+        );
+    };
+
+    $scope.$on('environmentChanged',function(event,environment){
+        $scope.environment = environment;
+        $scope.parseUrl();
+    });
+
+
     if($state.is('routeDetails') || $state.is('tagSearchRouteDetails')){
         routeService.getRouteById($stateParams.routeId).then(
             function(route) {
                 $scope.route = route;
+                if(localStorageService.get('environment')){
+                    $scope.environment = new Environment(localStorageService.get('environment'));
+                }
                 $scope.resetSandbox();
             }
         );
@@ -58,9 +86,7 @@ app.controller("RouteController", ['$scope','visualHelper','routeService','sandb
             var list = $scope.sandboxRoute.getPostParameterList();
             var sandboxRoutePostList = routeControllerHelper.convertPostParameterList(list);
             sandboxService.runExample(route, sandboxRoutePostList, $scope.authorization).then(function (reponse) {
-                if (route.getResponseType() == "JSON") {
-                    $scope.testSandboxOutput = reponse;
-                }
+                $scope.testSandboxOutput = reponse;
             });
         } catch(error) {
             alert(error);
@@ -69,10 +95,6 @@ app.controller("RouteController", ['$scope','visualHelper','routeService','sandb
 
     $scope.clearExample = function() {
         $scope.testSandboxOutput = {};
-    };
-
-    $scope.parseUrl = function(){
-        $scope.sandboxRoute.setUrl(sandboxService.parseSandboxUrl($scope.route.getUrl(),$scope.sandboxRouteUriList));
     };
 
     $scope.checkDefaultValue = function(postParam) {
@@ -89,9 +111,7 @@ app.controller("RouteController", ['$scope','visualHelper','routeService','sandb
         try{
             $scope.validateAuthorization(route);
             sandboxService.runExample(route, postParamList, $scope.authorization).then(function(reponse){
-                if(route.getResponseType() == "JSON") {
-                    $scope.sandboxOutput = reponse;
-                }
+                $scope.sandboxOutput = reponse;
             });
         } catch(error) {
             alert(error);
@@ -101,6 +121,8 @@ app.controller("RouteController", ['$scope','visualHelper','routeService','sandb
     $scope.resetSandbox = function() {
         $scope.sandboxOutput = {};
         $scope.sandboxRoute = angular.copy($scope.route);
+        $scope.originalRouteUrl = $scope.route.getUrl();
+        $scope.originalSandBoxRouteUrl = $scope.sandboxRoute.getUrl();
         var list = $scope.sandboxRoute.getUriParameterList();
         $scope.sandboxRouteUriList = routeControllerHelper.convertUriParameterList(list);
         list = $scope.sandboxRoute.getPostParameterList();

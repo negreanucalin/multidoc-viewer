@@ -1,4 +1,4 @@
-<div class="row col-md-10 col-lg-9">
+<div class="row col-md-10 col-lg-10">
     <div class="col-md-6">
         <!--<ol class="breadcrumb">-->
             <!--<li><a href="#">[Route_category]</a></li>-->
@@ -61,16 +61,16 @@
                 {{tag.getName()}}
             </span>
 
-            <div class="panel panel-default top-20">
+            <div class="panel panel-primary top-20">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Example Output</h3>
+                    <h3 class="panel-title panel-primary">Example Output</h3>
                 </div>
                 <h3 ng-if="testSandboxOutput.getStatus() != null">Status: {{testSandboxOutput.getStatus()}}</h3>
                 <json-formatter class="panel-body sandbox_output_example" json=testSandboxOutput.getData() open="1"></json-formatter>
             </div>
-            <div class="panel panel-default top-20">
+            <div class="panel panel-primary top-20">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Output Headers</h3>
+                    <h3 class="panel-title panel-primary">Output Headers</h3>
                 </div>
                 <json-formatter class="panel-body sandbox_output_example" json=testSandboxOutput.getResponseHeaders() open="1"></json-formatter>
             </div>
@@ -137,16 +137,16 @@
             <button type="submit" class="btn btn-primary" ng-click="resetSandbox()">Reset</button>
         </form>
 
-        <div class="panel panel-default top-20">
+        <div class="panel panel-primary top-20">
             <div class="panel-heading">
-                <h3 class="panel-title">Output Response</h3>
+                <h3 class="panel-title panel-primary">Output Response</h3>
             </div>
             <h3 ng-if="sandboxOutput.getStatus() != null">Status: {{sandboxOutput.getStatus()}}</h3>
             <json-formatter class="panel-body sandbox_output_example" json=sandboxOutput.getData() open="1"></json-formatter>
         </div>
-        <div class="panel panel-default top-20">
+        <div class="panel panel-primary top-20">
             <div class="panel-heading">
-                <h3 class="panel-title">Output Headers</h3>
+                <h3 class="panel-title panel-primary">Output Headers</h3>
             </div>
             <json-formatter class="panel-body sandbox_output_example" json=sandboxOutput.getResponseHeaders() open="1"></json-formatter>
         </div>

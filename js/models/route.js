@@ -8,7 +8,6 @@ var Route = function() {
     this.parameterList = [];
     this.category = {};
     this.url = "";
-    this.response_type = "";
     this.needs_authentication = false;
 
 
@@ -92,15 +91,6 @@ var Route = function() {
 
     this.hasParameters = function(){
         return this.parameterList.length >0;
-    };
-
-    this.setResponseType = function(type){
-        this.response_type = type;
-        return this;
-    };
-
-    this.getResponseType = function(){
-        return this.response_type ;
     };
 
     /**

@@ -1,6 +1,7 @@
 Multidoc
 
 Must:
+- Status code should be colored (ex:KO-<div class="alert alert-danger" role="alert">...</div>)
 - Add environment as list near authorization inputs
 - Put environment list and inputs in a drawer with icon to trigger
 - Scroll if route at bottom (maybe send object to RouteController?)

@@ -6,7 +6,6 @@ app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,pa
         route.setDescription(routesJSON.description);
         route.setUrl(routesJSON.url);
         route.setMethod(routesJSON.method.toUpperCase());
-        route.setResponseType(routesJSON.response_type.toUpperCase());
         route.setId(routesJSON.id);
         if(routesJSON.tags){
             route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
@@ -35,7 +34,6 @@ app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,pa
         route.setDescription(routesJSON.description);
         route.setUrl(routesJSON.url);
         route.setMethod(routesJSON.method.toUpperCase());
-        route.setResponseType(routesJSON.response_type.toUpperCase());
         route.setId(routesJSON.id);
         if(routesJSON.tags){
             route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
@@ -45,7 +43,9 @@ app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,pa
         if(typeof routesJSON.needsAuthentication != "undefined"){
             route.setNeedsAuthentication(routesJSON.needsAuthentication);
         }
-        route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
+        if(routesJSON.params){
+            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
+        }
         route.setCategory(category);
         return route;
     };

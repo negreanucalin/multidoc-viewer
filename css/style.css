@@ -34,6 +34,16 @@ footer {
 .color-text-white{
 	color:white;
 }
+hr {
+	 margin-top: 10px;
+	 margin-bottom: 10px;
+	 border: 0;
+	border-top: 1px solid #eee;
+}
+.nav>li>a {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
 .hand-cursor{ cursor: pointer; cursor: hand; }
 .vertical-center {
 	min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
