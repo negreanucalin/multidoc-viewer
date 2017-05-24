@@ -1,0 +1,11 @@
+{
+    "name": "negreanucalin/multidoc-viewer",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Negreanu Calin",
+            "email": "negreanu0calin@gmail.com"
+        }
+    ]
+}
