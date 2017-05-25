@@ -7,13 +7,5 @@
             "name": "Negreanu Calin",
             "email": "negreanu0calin@gmail.com"
         }
-    ],  
-	"scripts": {
-		"post-install-cmd": [
-			"npm install"
-		],
-		"post-update-cmd": [
-			"npm install"
-		]
-	}
+    ]
 }
