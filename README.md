@@ -2,7 +2,7 @@
 
 ## Not yet stable, in testing phase!
 
-#### [Multidoc parser](https://github.com/negreanucalin/multidoc-parser)
+#### Check out [Multidoc parser](https://github.com/negreanucalin/multidoc-parser)
 
 ### TODO list
 
