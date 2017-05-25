@@ -3,6 +3,7 @@
 ## Not yet stable, in testing phase!
 
 #### Check out [Multidoc parser](https://github.com/negreanucalin/multidoc-parser)
+#### Did you say [Laravel?](https://github.com/negreanucalin/multidoc-laravel)
 
 ### TODO list
 
