@@ -1,7 +1,8 @@
-#Multidoc viewer#
-##Not yet stable, in testing phase!##
+#Multidoc viewer
 
-###TODO list###
+##Not yet stable, in testing phase!
+
+###TODO list
 
 	* Check if files have been generated
 	* Add to localstorage to avoid trafic?
