@@ -10,8 +10,11 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
       <!-- inject:js -->
+      <script src="/dist/multidoc/scripts/vendor.min.js?v=1495712768"></script>
+      <script src="/dist/multidoc/scripts/scripts.min.js?v=1495712768"></script>
       <!-- endinject -->
       <!-- inject:css -->
+	  <link rel="stylesheet" href="/dist/multidoc/styles/styles.min.css?v=1495712768">
 	  <!-- endinject -->
   </head>
   

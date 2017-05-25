@@ -7,7 +7,10 @@ var gulp = require('gulp');
 
 var nodeModules = 'node_modules/**/*.js';
 var jsFiles = 'js/**/*.js';
-var jsDest = 'dist/scripts';
+var distFolder = 'dist/multidoc';
+
+var jsDest = distFolder+'/scripts';
+
 var node_path = 'node_modules/';
 var cleanCSS = require('gulp-clean-css');
 
@@ -20,9 +23,9 @@ gulp.task('minify-css', function() {
         ])
         .pipe(cleanCSS({compatibility: 'ie8'}))
         .pipe(concat('styles.css'))
-        .pipe(gulp.dest('dist/styles'))
+        .pipe(gulp.dest(distFolder+'/styles'))
         .pipe(rename('styles.min.css'))
-        .pipe(gulp.dest('dist/styles'));
+        .pipe(gulp.dest(distFolder+'/styles'));
 });
 
 gulp.task('scripts', function() {
@@ -54,7 +57,7 @@ gulp.task('inject', function() {
     var target = gulp.src('index.php');
     var timeStamp = Math.floor(Date.now() / 1000);
     var sources = gulp.src(
-        ['dist/scripts/vendor.min.js', 'dist/scripts/scripts.min.js'], {read: false}, {starttag: '<!-- inject:js -->'}
+        [distFolder+'/scripts/vendor.min.js', distFolder+'/scripts/scripts.min.js'], {read: false}, {starttag: '<!-- inject:js -->'}
     );
     target.pipe(inject(sources, {
             transform: function (filepath) {
@@ -62,9 +65,9 @@ gulp.task('inject', function() {
                 return inject.transform.apply(inject.transform, arguments);
             }
         }
-    )).pipe(gulp.dest('.'));
+    )).pipe(gulp.dest('dist/'));
     var cssSources = gulp.src(
-        ['dist/styles/styles.min.css'], {read: false}, {starttag: '<!-- inject:css -->'}
+        [distFolder+'/styles/styles.min.css'], {read: false}, {starttag: '<!-- inject:css -->'}
     );
     return target.pipe(inject(cssSources, {
             transform: function (filepath) {
@@ -72,7 +75,7 @@ gulp.task('inject', function() {
                 return inject.transform.apply(inject.transform, arguments);
             }
         }
-    )).pipe(gulp.dest('.'));
+    )).pipe(gulp.dest(distFolder));
 });
 
 gulp.task('default' ,function () {
