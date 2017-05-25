@@ -65,7 +65,7 @@ gulp.task('inject', function() {
                 return inject.transform.apply(inject.transform, arguments);
             }
         }
-    )).pipe(gulp.dest('dist/'));
+    )).pipe(gulp.dest('.'));
     var cssSources = gulp.src(
         [distFolder+'/styles/styles.min.css'], {read: false}, {starttag: '<!-- inject:css -->'}
     );
@@ -75,7 +75,7 @@ gulp.task('inject', function() {
                 return inject.transform.apply(inject.transform, arguments);
             }
         }
-    )).pipe(gulp.dest(distFolder));
+    )).pipe(gulp.dest('.'));
 });
 
 gulp.task('default' ,function () {
