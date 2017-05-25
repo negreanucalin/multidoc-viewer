@@ -14,7 +14,9 @@ app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,pa
         if(typeof routesJSON.needsAuthentication != "undefined"){
             route.setNeedsAuthentication(routesJSON.needsAuthentication);
         }
-        route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
+        if(routesJSON.params) {
+            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
+        }
         route.setCategory(category);
         return route;
     };

@@ -604,7 +604,9 @@ app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,pa
         if(typeof routesJSON.needsAuthentication != "undefined"){
             route.setNeedsAuthentication(routesJSON.needsAuthentication);
         }
-        route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
+        if(routesJSON.params) {
+            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
+        }
         route.setCategory(category);
         return route;
     };
@@ -814,384 +816,6 @@ app.service('visualHelper', function () {
 
 });
 
-
-app.service('categoryService',['$q','$http','categoryFactory', function ($q,$http,categoryFactory) {
-
-    var self = this;
-
-    this.getCategoryList = function () {
-        var defer = $q.defer();
-        $http({
-            method : "GET",
-            url : "api_data/categories.json"
-        }).then(function mySucces(response) {
-            defer.resolve(categoryFactory.buildListFromJson(response.data.categoryList));
-        }, function myError(response) {
-            defer.reject(response);
-        });
-        return defer.promise;
-    };
-
-    this.markVisibleForNavigation = function(categoryList,visibleCategoryList,level,parentIdList){
-        if(typeof level == 'undefined') {
-            level = 0;
-            parentIdList = [];
-        }
-        level+=1;
-        for(var i=0; i<categoryList.length; i++) {
-            var category = categoryList[i];
-            var showChildren = false;
-            if (level == 1) {
-                category.setIsVisible(true);
-                category.setIsParent(false);
-                parentIdList = [category.getId()];
-                if (visibleCategoryList.length > 0 && (visibleCategoryList.indexOf(category.getId()) !== -1)) {
-                    showChildren = true;
-                }
-            } else {
-                category.setIsParent(true);
-                parentIdList.push(category.getId());
-                if (visibleCategoryList.indexOf(category.getId()) !== -1) {
-                    category.setIsVisible(true);
-                    showChildren = true;
-                } else {
-                    category.setIsVisible(false);
-                    showChildren = false;
-                }
-            }
-            if(category.hasCategoryList()){
-                this.markVisibleForNavigation(category.getCategoryList(),visibleCategoryList,level,parentIdList);
-            }
-            if(showChildren){
-                category.getRouteList().map(function (route) {
-                    route.setIsVisible(showChildren);
-                    return route;
-                });
-            }
-        }
-    };
-
-    this.markVisibleForSearch = function(categoryList){
-        for(var i=0; i<categoryList.length; i++) {
-            var category = categoryList[i];
-            category.setIsVisible(true);
-            category.getRouteList().map(function (route) {
-                route.setIsVisible(true);
-                return route;
-            });
-            if(category.hasCategoryList()){
-                this.markVisibleForSearch(category.getCategoryList());
-            }
-        }
-    };
-
-    this.getNavigationCategoryList = function (visibleCategoryList) {
-        var defer = $q.defer();
-        $http({
-            method : "GET",
-            url : "api_data/categories.json"
-        }).then(function mySucces(response) {
-            var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList,visibleCategoryList);
-            self.markVisibleForNavigation(categoryList,visibleCategoryList);
-            defer.resolve(categoryList);
-        }, function myError(response) {
-            defer.reject(response);
-        });
-        return defer.promise;
-    };
-
-    this.routeHasTag = function(route,tag){
-        for(var i=0; i<route.getTagList().length; i++){
-            if(route.getTag(i).getName() == tag.getName()){
-                return true;
-            }
-        }
-        return false;
-    };
-
-    this.routeHasAllTags = function(route,tagList) {
-        for(var j=0; j<tagList.length; j++){
-            if(!this.routeHasTag(route,tagList[j])){
-                return false;
-            }
-        }
-        return true;
-    };
-
-    this.filterRoutesByTags = function(categoryList, tagList){
-
-        for(var i=0; i<categoryList.length; i++) {
-            if(categoryList[i].hasRouteList()){
-                var routeLength = categoryList[i].getRouteList().length;
-                var routeList = categoryList[i].getRouteList();
-                for(var j=0; j<routeLength; j++) {
-                    if(!this.routeHasAllTags(categoryList[i].getRoute(j),tagList)){
-                        routeList[j] = null;
-                    }
-                }
-                routeList = routeList.filter(function(n){ return n != null });
-                categoryList[i].setRouteList(routeList);
-            }
-            if(categoryList[i].hasCategoryList()){
-                this.filterRoutesByTags(categoryList[i].getCategoryList(),tagList);
-            }
-        }
-    };
-
-    this.getNavigationCategoryListByTagList = function (tagList, parentIdList) {
-        var defer = $q.defer();
-        $http({
-            method : "GET",
-            url : "api_data/categories.json"
-        }).then(function mySucces(response) {
-            var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList,[]);
-            self.filterRoutesByTags(categoryList,tagList);
-            if(parentIdList){
-                self.markVisibleForNavigation(categoryList, parentIdList);
-            }
-            self.markVisibleForSearch(categoryList);
-            defer.resolve(categoryList);
-        }, function myError(response) {
-            defer.reject(response);
-        });
-        return defer.promise;
-    };
-
-}]);
-
-app.service('projectService',['$q','$http','projectFactory', function ($q,$http,projectFactory) {
-
-    this.getEnvironmentByName = function(project,name){
-        for(var i=0;i<project.getEnvironmentList().length;i++){
-            if(project.getEnvironment(i).getName() == name){
-                return project.getEnvironment(i);
-            }
-        }
-    };
-
-
-    this.getProject = function () {
-        var defer = $q.defer();
-        $http({
-            method : "GET",
-            url : "api_data/project.json"
-        }).then(function mySucces(response) {
-            defer.resolve(projectFactory.buildFromJson(response.data));
-        }, function myError(response) {
-            defer.reject(response);
-        });
-        return defer.promise;
-    };
-
-}]);
-
-app.service('routeService',['$q','categoryService', function ($q,categoryService) {
-
-    var self = this;
-
-    this.findRouteInCategory = function(categoryList, routeId) {
-        var route = null;
-        for(var i=0; i<categoryList.length; i++){
-            if(categoryList[i].hasRouteList()) {
-                for(var j=0; j<categoryList[i].getRouteList().length;j++){
-                    route = categoryList[i].getRoute(j);
-                    if(route.getId() == routeId) {
-                        return route;
-                    }
-                }
-            } else {
-                route = this.findRouteInCategory(categoryList[i].getCategoryList(), routeId);
-                if(route !=null){
-                    return route;
-                }
-            }
-        }
-        return null;
-    };
-
-    this.getRouteById = function (id) {
-        var defer = $q.defer();
-        categoryService.getCategoryList().then(
-            function mySucces(categoryList) {
-                defer.resolve(self.findRouteInCategory(categoryList,id));
-        }, function myError(response) {
-            defer.reject(response);
-        });
-        return defer.promise;
-    };
-
-
-
-}]);
-
-app.service('sandboxService',['$q','$http','transformRequestAsFormPost','responseFactory',
-    function ($q,$http,transformRequestAsFormPost,responseFactory) {
-
-    /**
-     *
-     * @param {string} url
-     * @param {Param[]} parameters
-     * @returns {*}
-     */
-    this.parseUrl = function(url, parameters) {
-        for(var i=0; i<parameters.length; i++){
-            if(parameters[i].getType() == "uri") {
-                url = url.replace("[/:"+parameters[i].getName()+"]","/"+parameters[i].getExampleData());
-                url = url.replace("[:"+parameters[i].getName()+"]",parameters[i].getExampleData());
-            }
-        }
-        return url;
-    };
-
-    this.parseEnvironment = function(url, environment){
-        if(environment instanceof Environment){
-            return url.replace("{{environment}}",environment.getUrl());
-        }
-    };
-
-    /**
-     *
-     * @param {string} url
-     * @param {Param[]} parameters
-     * @returns {*}
-     */
-    this.parseSandboxUrl = function(url, parameters,environment) {
-        url = this.parseEnvironment(url,environment);
-        for(var i=0; i<parameters.length; i++){
-            var value = null;
-            var name = parameters[i].name;
-            if(parameters[i].enabled){
-                value = angular.copy(parameters[i].value).toString();
-            } else {
-                value = null;
-            }
-            var frontSlash = value!=null && value.length>0?"/":"";
-            var realValue = value==null?"":value;
-            url = url.replace("[:"+name+"]",realValue);
-            url = url.replace("[/:"+name+"]",frontSlash+realValue);
-        }
-        return url;
-    };
-
-    this.getEnabledPostVarList = function(postVarList) {
-        var list = [];
-        for(var i=0;i<postVarList.length;i++){
-            if(postVarList[i].enabled){
-                list[postVarList[i].name] = postVarList[i].value;
-            }
-        }
-        return list;
-    };
-
-    this.getJsonPostVar = function(postVarList) {
-        for(var i=0;i<postVarList.length;i++){
-            if(!postVarList[i].hasName && postVarList[i].isJson){
-                return postVarList[i].value;
-            }
-        }
-        return null;
-    };
-
-    /**
-     * @param {Route} route
-     * @param {Object[]} paramList
-     * @param {Object} authorization
-     * @returns {*}
-     */
-    this.runExample = function (route, paramList,authorization) {
-        var defer = $q.defer();
-        if(route.getMethod() == "POST"){
-            var http = {};
-            var params = this.getEnabledPostVarList(paramList);
-            var headers = {};
-            var jsonParam = this.getJsonPostVar(paramList);
-            if(route.needsAuthentication()){
-                headers[authorization.header] = authorization.token;
-            }
-            if(jsonParam !== null) {//for json post var with no name
-                headers = {'Content-Type':'application/json; charset=utf-8'};
-                http = $http({
-                    headers: headers,
-                    method : route.getMethod(),
-                    url : this.parseUrl(route.getUrl(), route.getParameterList()),
-                    data: JSON.parse(jsonParam)
-                });
-            } else {
-                headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
-                http = $http({
-                    transformRequest: transformRequestAsFormPost,
-                    headers: headers,
-                    method : route.getMethod(),
-                    url : this.parseUrl(route.getUrl(), route.getParameterList()),
-                    data: params
-                })
-            }
-            http.then(function mySucces(response, status, headers) {
-                defer.resolve(responseFactory.buildFromRequestResponse(response));
-            }, function myError(response) {
-                defer.reject(response);
-            });
-        } else {
-            $http({
-                method : route.getMethod(),
-                url : this.parseUrl(route.getUrl(), route.getParameterList())
-            }).then(function mySucces(response, status, headers) {
-                defer.resolve(responseFactory.buildFromRequestResponse(response));
-            }, function myError(response) {
-                defer.reject(response);
-            });
-        }
-
-        return defer.promise;
-    };
-
-
-
-}]);
-
-app.service('stateService',['$q','localStorageService','$state','$stateParams', function ($q,localStorageService,$state,$stateParams) {
-
-    //var self = this;
-
-    this.saveCurrentState = function() {
-        localStorageService.set('beforeSearchStateParams', $stateParams);
-        localStorageService.set('beforeSearchStateName', $state.current.name);
-    };
-
-    this.loadLastState = function() {
-        var params = localStorageService.get('beforeSearchStateParams');
-        var name = localStorageService.get('beforeSearchStateName');
-        $state.go(name, params).then();
-    };
-
-    this.is = function(stateName){
-        return $state.is(stateName);
-    }
-
-}]);
-
-app.service('tagService',['$q','localStorageService', function ($q,localStorageService) {
-
-    //var self = this;
-
-    this.saveTagList = function(tagList) {
-        localStorageService.set('tagList', tagList);
-        return tagList;
-    };
-
-
-    this.getTagList = function() {
-        var list = [];
-        var tagList = localStorageService.get('tagList');
-        if(!angular.isObject(tagList)){
-            return [];
-        }
-        for(var i =0; i<tagList.length; i++){
-            list.push(new Tag(tagList[i]));
-        }
-        return list;
-    };
-}]);
 
 var Category = function() {
 
@@ -2038,3 +1662,381 @@ var Tag = function() {
 
 
 
+
+app.service('categoryService',['$q','$http','categoryFactory', function ($q,$http,categoryFactory) {
+
+    var self = this;
+
+    this.getCategoryList = function () {
+        var defer = $q.defer();
+        $http({
+            method : "GET",
+            url : "api_data/categories.json"
+        }).then(function mySucces(response) {
+            defer.resolve(categoryFactory.buildListFromJson(response.data.categoryList));
+        }, function myError(response) {
+            defer.reject(response);
+        });
+        return defer.promise;
+    };
+
+    this.markVisibleForNavigation = function(categoryList,visibleCategoryList,level,parentIdList){
+        if(typeof level == 'undefined') {
+            level = 0;
+            parentIdList = [];
+        }
+        level+=1;
+        for(var i=0; i<categoryList.length; i++) {
+            var category = categoryList[i];
+            var showChildren = false;
+            if (level == 1) {
+                category.setIsVisible(true);
+                category.setIsParent(false);
+                parentIdList = [category.getId()];
+                if (visibleCategoryList.length > 0 && (visibleCategoryList.indexOf(category.getId()) !== -1)) {
+                    showChildren = true;
+                }
+            } else {
+                category.setIsParent(true);
+                parentIdList.push(category.getId());
+                if (visibleCategoryList.indexOf(category.getId()) !== -1) {
+                    category.setIsVisible(true);
+                    showChildren = true;
+                } else {
+                    category.setIsVisible(false);
+                    showChildren = false;
+                }
+            }
+            if(category.hasCategoryList()){
+                this.markVisibleForNavigation(category.getCategoryList(),visibleCategoryList,level,parentIdList);
+            }
+            if(showChildren){
+                category.getRouteList().map(function (route) {
+                    route.setIsVisible(showChildren);
+                    return route;
+                });
+            }
+        }
+    };
+
+    this.markVisibleForSearch = function(categoryList){
+        for(var i=0; i<categoryList.length; i++) {
+            var category = categoryList[i];
+            category.setIsVisible(true);
+            category.getRouteList().map(function (route) {
+                route.setIsVisible(true);
+                return route;
+            });
+            if(category.hasCategoryList()){
+                this.markVisibleForSearch(category.getCategoryList());
+            }
+        }
+    };
+
+    this.getNavigationCategoryList = function (visibleCategoryList) {
+        var defer = $q.defer();
+        $http({
+            method : "GET",
+            url : "api_data/categories.json"
+        }).then(function mySucces(response) {
+            var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList,visibleCategoryList);
+            self.markVisibleForNavigation(categoryList,visibleCategoryList);
+            defer.resolve(categoryList);
+        }, function myError(response) {
+            defer.reject(response);
+        });
+        return defer.promise;
+    };
+
+    this.routeHasTag = function(route,tag){
+        for(var i=0; i<route.getTagList().length; i++){
+            if(route.getTag(i).getName() == tag.getName()){
+                return true;
+            }
+        }
+        return false;
+    };
+
+    this.routeHasAllTags = function(route,tagList) {
+        for(var j=0; j<tagList.length; j++){
+            if(!this.routeHasTag(route,tagList[j])){
+                return false;
+            }
+        }
+        return true;
+    };
+
+    this.filterRoutesByTags = function(categoryList, tagList){
+
+        for(var i=0; i<categoryList.length; i++) {
+            if(categoryList[i].hasRouteList()){
+                var routeLength = categoryList[i].getRouteList().length;
+                var routeList = categoryList[i].getRouteList();
+                for(var j=0; j<routeLength; j++) {
+                    if(!this.routeHasAllTags(categoryList[i].getRoute(j),tagList)){
+                        routeList[j] = null;
+                    }
+                }
+                routeList = routeList.filter(function(n){ return n != null });
+                categoryList[i].setRouteList(routeList);
+            }
+            if(categoryList[i].hasCategoryList()){
+                this.filterRoutesByTags(categoryList[i].getCategoryList(),tagList);
+            }
+        }
+    };
+
+    this.getNavigationCategoryListByTagList = function (tagList, parentIdList) {
+        var defer = $q.defer();
+        $http({
+            method : "GET",
+            url : "api_data/categories.json"
+        }).then(function mySucces(response) {
+            var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList,[]);
+            self.filterRoutesByTags(categoryList,tagList);
+            if(parentIdList){
+                self.markVisibleForNavigation(categoryList, parentIdList);
+            }
+            self.markVisibleForSearch(categoryList);
+            defer.resolve(categoryList);
+        }, function myError(response) {
+            defer.reject(response);
+        });
+        return defer.promise;
+    };
+
+}]);
+
+app.service('projectService',['$q','$http','projectFactory', function ($q,$http,projectFactory) {
+
+    this.getEnvironmentByName = function(project,name){
+        for(var i=0;i<project.getEnvironmentList().length;i++){
+            if(project.getEnvironment(i).getName() == name){
+                return project.getEnvironment(i);
+            }
+        }
+    };
+
+
+    this.getProject = function () {
+        var defer = $q.defer();
+        $http({
+            method : "GET",
+            url : "api_data/project.json"
+        }).then(function mySucces(response) {
+            defer.resolve(projectFactory.buildFromJson(response.data));
+        }, function myError(response) {
+            defer.reject(response);
+        });
+        return defer.promise;
+    };
+
+}]);
+
+app.service('routeService',['$q','categoryService', function ($q,categoryService) {
+
+    var self = this;
+
+    this.findRouteInCategory = function(categoryList, routeId) {
+        var route = null;
+        for(var i=0; i<categoryList.length; i++){
+            if(categoryList[i].hasRouteList()) {
+                for(var j=0; j<categoryList[i].getRouteList().length;j++){
+                    route = categoryList[i].getRoute(j);
+                    if(route.getId() == routeId) {
+                        return route;
+                    }
+                }
+            } else {
+                route = this.findRouteInCategory(categoryList[i].getCategoryList(), routeId);
+                if(route !=null){
+                    return route;
+                }
+            }
+        }
+        return null;
+    };
+
+    this.getRouteById = function (id) {
+        var defer = $q.defer();
+        categoryService.getCategoryList().then(
+            function mySucces(categoryList) {
+                defer.resolve(self.findRouteInCategory(categoryList,id));
+        }, function myError(response) {
+            defer.reject(response);
+        });
+        return defer.promise;
+    };
+
+
+
+}]);
+
+app.service('sandboxService',['$q','$http','transformRequestAsFormPost','responseFactory',
+    function ($q,$http,transformRequestAsFormPost,responseFactory) {
+
+    /**
+     *
+     * @param {string} url
+     * @param {Param[]} parameters
+     * @returns {*}
+     */
+    this.parseUrl = function(url, parameters) {
+        for(var i=0; i<parameters.length; i++){
+            if(parameters[i].getType() == "uri") {
+                url = url.replace("[/:"+parameters[i].getName()+"]","/"+parameters[i].getExampleData());
+                url = url.replace("[:"+parameters[i].getName()+"]",parameters[i].getExampleData());
+            }
+        }
+        return url;
+    };
+
+    this.parseEnvironment = function(url, environment){
+        if(environment instanceof Environment){
+            return url.replace("{{environment}}",environment.getUrl());
+        }
+    };
+
+    /**
+     *
+     * @param {string} url
+     * @param {Param[]} parameters
+     * @returns {*}
+     */
+    this.parseSandboxUrl = function(url, parameters,environment) {
+        url = this.parseEnvironment(url,environment);
+        for(var i=0; i<parameters.length; i++){
+            var value = null;
+            var name = parameters[i].name;
+            if(parameters[i].enabled){
+                value = angular.copy(parameters[i].value).toString();
+            } else {
+                value = null;
+            }
+            var frontSlash = value!=null && value.length>0?"/":"";
+            var realValue = value==null?"":value;
+            url = url.replace("[:"+name+"]",realValue);
+            url = url.replace("[/:"+name+"]",frontSlash+realValue);
+        }
+        return url;
+    };
+
+    this.getEnabledPostVarList = function(postVarList) {
+        var list = [];
+        for(var i=0;i<postVarList.length;i++){
+            if(postVarList[i].enabled){
+                list[postVarList[i].name] = postVarList[i].value;
+            }
+        }
+        return list;
+    };
+
+    this.getJsonPostVar = function(postVarList) {
+        for(var i=0;i<postVarList.length;i++){
+            if(!postVarList[i].hasName && postVarList[i].isJson){
+                return postVarList[i].value;
+            }
+        }
+        return null;
+    };
+
+    /**
+     * @param {Route} route
+     * @param {Object[]} paramList
+     * @param {Object} authorization
+     * @returns {*}
+     */
+    this.runExample = function (route, paramList,authorization) {
+        var defer = $q.defer();
+        if(route.getMethod() == "POST"){
+            var http = {};
+            var params = this.getEnabledPostVarList(paramList);
+            var headers = {};
+            var jsonParam = this.getJsonPostVar(paramList);
+            if(route.needsAuthentication()){
+                headers[authorization.header] = authorization.token;
+            }
+            if(jsonParam !== null) {//for json post var with no name
+                headers = {'Content-Type':'application/json; charset=utf-8'};
+                http = $http({
+                    headers: headers,
+                    method : route.getMethod(),
+                    url : this.parseUrl(route.getUrl(), route.getParameterList()),
+                    data: JSON.parse(jsonParam)
+                });
+            } else {
+                headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+                http = $http({
+                    transformRequest: transformRequestAsFormPost,
+                    headers: headers,
+                    method : route.getMethod(),
+                    url : this.parseUrl(route.getUrl(), route.getParameterList()),
+                    data: params
+                })
+            }
+            http.then(function mySucces(response, status, headers) {
+                defer.resolve(responseFactory.buildFromRequestResponse(response));
+            }, function myError(response) {
+                defer.reject(response);
+            });
+        } else {
+            $http({
+                method : route.getMethod(),
+                url : this.parseUrl(route.getUrl(), route.getParameterList())
+            }).then(function mySucces(response, status, headers) {
+                defer.resolve(responseFactory.buildFromRequestResponse(response));
+            }, function myError(response) {
+                defer.reject(response);
+            });
+        }
+
+        return defer.promise;
+    };
+
+
+
+}]);
+
+app.service('stateService',['$q','localStorageService','$state','$stateParams', function ($q,localStorageService,$state,$stateParams) {
+
+    //var self = this;
+
+    this.saveCurrentState = function() {
+        localStorageService.set('beforeSearchStateParams', $stateParams);
+        localStorageService.set('beforeSearchStateName', $state.current.name);
+    };
+
+    this.loadLastState = function() {
+        var params = localStorageService.get('beforeSearchStateParams');
+        var name = localStorageService.get('beforeSearchStateName');
+        $state.go(name, params).then();
+    };
+
+    this.is = function(stateName){
+        return $state.is(stateName);
+    }
+
+}]);
+
+app.service('tagService',['$q','localStorageService', function ($q,localStorageService) {
+
+    //var self = this;
+
+    this.saveTagList = function(tagList) {
+        localStorageService.set('tagList', tagList);
+        return tagList;
+    };
+
+
+    this.getTagList = function() {
+        var list = [];
+        var tagList = localStorageService.get('tagList');
+        if(!angular.isObject(tagList)){
+            return [];
+        }
+        for(var i =0; i<tagList.length; i++){
+            list.push(new Tag(tagList[i]));
+        }
+        return list;
+    };
+}]);
