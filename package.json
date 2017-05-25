@@ -12,13 +12,20 @@
     "jquery": "^3.1.1",
     "jsonformatter": "^0.6.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^3.4.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-minify": "^1.0.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^3.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
-	  "type": "git",
-	  "url": "git://github.com/negreanucalin/multidoc-viewer.git"
+    "type": "git",
+    "url": "git://github.com/negreanucalin/multidoc-viewer.git"
   },
   "author": "",
   "license": "ISC"
