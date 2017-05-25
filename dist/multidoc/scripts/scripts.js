@@ -104,6 +104,229 @@ String.prototype.hashCode = function(){
     }
     return hash;
 }
+app.service('categoryFactory',['routeFactory', function (routeFactory) {
+
+    this.buildListFromJson = function (routesJSON) {
+        var categories = [];
+        for(var i=0; i<routesJSON.length; i++) {
+            var category = new Category();
+            category.setId(routesJSON[i].id);
+            category.setName(routesJSON[i].name);
+            if(typeof routesJSON[i].needsAuthentication != "undefined"){
+                category.setNeedsAuthentication(routesJSON[i].needsAuthentication);
+            }
+            if(routesJSON[i].categoryList) {
+                category.setCategoryList(this.buildListFromJson(routesJSON[i].categoryList));
+                category.setHasCategoryList(true);
+            } else if(routesJSON[i].routes){
+                category.setRouteList(routeFactory.buildRouteListFromJson(routesJSON[i].routes, category));
+            }
+            categories.push(category);
+        }
+        return categories;
+    };
+
+    this.buildNavigationListFromJson = function (routesJSON, parentIdList, level) {
+        var categories = [];
+        if(typeof level == 'undefined') {
+            level = 0;
+            parentIdList = [];
+        }
+        level+=1;
+        for(var i=0; i<routesJSON.length; i++) {
+            var category = new NavigationCategory();
+            category.setId(routesJSON[i].id);
+            category.setName(routesJSON[i].name);
+            if(typeof routesJSON[i].needsAuthentication != "undefined"){
+                category.setNeedsAuthentication(routesJSON[i].needsAuthentication);
+            }
+            if(level == 1){
+                parentIdList = [category.getId()];
+            } else {
+                parentIdList.push(category.getId());
+            }
+            category.setParentIdList(angular.copy(parentIdList));
+            if(routesJSON[i].categoryList) {
+                category.setCategoryList(this.buildNavigationListFromJson(routesJSON[i].categoryList, parentIdList,level));
+                category.setHasCategoryList(true);
+            } else if(routesJSON[i].routes){
+                var routeList = routeFactory.buildNavigationRouteListFromJson(routesJSON[i].routes, category);
+                category.setRouteList(routeList);
+            }
+            categories.push(category);
+        }
+        return categories;
+    };
+
+}]);
+
+app.service('paramFactory', function () {
+
+    this.buildParamFromJson = function (paramJSON) {
+        var param = new Param();
+        param.setDescription(paramJSON.description);
+        param.setType(paramJSON.type);
+        param.setIsOptional(paramJSON.isOptional);
+        param.setDataType(paramJSON.data_type);
+        param.setExampleData(paramJSON.example);
+        if(paramJSON.default){
+            param.setHasDefaultValue(true);
+            param.setDefaultValue(paramJSON.default);
+        }
+        if(paramJSON.listOption){
+            param.setHasPossibleValues(true);
+            param.setPossibleValues(paramJSON.listOption);
+        }
+        if(paramJSON.data_type == 'json'){
+            param.setIsJsonParam(true);
+            if(paramJSON.name){
+                param.setName(paramJSON.name);
+                param.setHasName(true);
+            }
+        } else {
+            param.setName(paramJSON.name);
+        }
+        return param;
+    };
+
+    this.buildParamListFromJson = function (paramsJSON) {
+        var list = [];
+        for(var i=0; i<paramsJSON.length; i++){
+            list.push(this.buildParamFromJson(paramsJSON[i]));
+        }
+        return list;
+    };
+
+});
+
+app.service('projectFactory', function () {
+
+    this.buildEnvironment = function(envListJson){
+        var env = new Environment();
+        env.setUrl(envListJson.url);
+        env.setName(envListJson.name);
+        return env;
+    };
+
+
+    this.buildEnvironmentList = function(envListJson){
+        var list = [];
+        for(var i=0; i<envListJson.length;i++){
+            list.push(this.buildEnvironment(envListJson[i]));
+        }
+        return list;
+    };
+
+
+    this.buildFromJson = function (projectJson) {
+        var project = new Project();
+        project.setName(projectJson.name);
+        project.setDescription(projectJson.description);
+        project.setVersion(projectJson.version);
+        project.setBuildDate(projectJson.buildDate);
+        if(projectJson.environments) {
+            project.setHasEnvironmentList(true);
+            project.setEnvironmentList(this.buildEnvironmentList(projectJson.environments));
+        }
+        return project;
+    };
+
+});
+
+app.service('responseFactory', function () {
+
+    this.buildFromRequestResponse = function (response) {
+        var responseObj = new Response();
+        responseObj.setData(response.data);
+        responseObj.setStatus(response.status);
+        responseObj.setResponseHeaders(response.headers());
+        return responseObj;
+    };
+
+});
+
+app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,paramFactory) {
+
+    this.buildRouteFromJson = function (routesJSON,category) {
+        var route = new Route();
+        route.setName(routesJSON.name);
+        route.setDescription(routesJSON.description);
+        route.setUrl(routesJSON.url);
+        route.setMethod(routesJSON.method.toUpperCase());
+        route.setId(routesJSON.id);
+        if(routesJSON.tags){
+            route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
+        }
+        route.setNeedsAuthentication(category.needsAuthentication());
+        if(typeof routesJSON.needsAuthentication != "undefined"){
+            route.setNeedsAuthentication(routesJSON.needsAuthentication);
+        }
+        if(routesJSON.params) {
+            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
+        }
+        route.setCategory(category);
+        return route;
+    };
+
+    this.buildRouteListFromJson = function (routesJSON, category) {
+        var list = [];
+        for(var i=0; i<routesJSON.length; i++){
+            list.push(this.buildRouteFromJson(routesJSON[i],category));
+        }
+        return list;
+    };
+
+
+    this.buildNavigationRouteFromJson = function (routesJSON, category) {
+        var route = new NavigationRoute();
+        route.setName(routesJSON.name);
+        route.setDescription(routesJSON.description);
+        route.setUrl(routesJSON.url);
+        route.setMethod(routesJSON.method.toUpperCase());
+        route.setId(routesJSON.id);
+        if(routesJSON.tags){
+            route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
+        }
+        route.setNeedsAuthentication(category.needsAuthentication());
+        //route overrides
+        if(typeof routesJSON.needsAuthentication != "undefined"){
+            route.setNeedsAuthentication(routesJSON.needsAuthentication);
+        }
+        if(routesJSON.params){
+            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
+        }
+        route.setCategory(category);
+        return route;
+    };
+
+
+    this.buildNavigationRouteListFromJson = function (routesJSON, category) {
+        var list = [];
+        for(var i=0; i<routesJSON.length; i++){
+            list.push(this.buildNavigationRouteFromJson(routesJSON[i],category));
+        }
+        return list;
+    };
+}]);
+
+app.service('tagFactory', function () {
+
+    this.buildTagFromJson = function (tagJSON) {
+        var tag = new Tag();
+        tag.setName(tagJSON);
+        return tag;
+    };
+
+    this.buildTagListFromJson = function (tagsJSON) {
+        var list = [];
+        for(var i=0; i<tagsJSON.length; i++){
+            list.push(this.buildTagFromJson(tagsJSON[i]));
+        }
+        return list;
+    };
+
+});
+
 
 app.controller("FooterController", ['$scope','$rootScope','tagService','stateService',
     function ($scope,$rootScope,tagService,stateService) {
@@ -446,229 +669,6 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
 
 
 }]);
-
-app.service('categoryFactory',['routeFactory', function (routeFactory) {
-
-    this.buildListFromJson = function (routesJSON) {
-        var categories = [];
-        for(var i=0; i<routesJSON.length; i++) {
-            var category = new Category();
-            category.setId(routesJSON[i].id);
-            category.setName(routesJSON[i].name);
-            if(typeof routesJSON[i].needsAuthentication != "undefined"){
-                category.setNeedsAuthentication(routesJSON[i].needsAuthentication);
-            }
-            if(routesJSON[i].categoryList) {
-                category.setCategoryList(this.buildListFromJson(routesJSON[i].categoryList));
-                category.setHasCategoryList(true);
-            } else if(routesJSON[i].routes){
-                category.setRouteList(routeFactory.buildRouteListFromJson(routesJSON[i].routes, category));
-            }
-            categories.push(category);
-        }
-        return categories;
-    };
-
-    this.buildNavigationListFromJson = function (routesJSON, parentIdList, level) {
-        var categories = [];
-        if(typeof level == 'undefined') {
-            level = 0;
-            parentIdList = [];
-        }
-        level+=1;
-        for(var i=0; i<routesJSON.length; i++) {
-            var category = new NavigationCategory();
-            category.setId(routesJSON[i].id);
-            category.setName(routesJSON[i].name);
-            if(typeof routesJSON[i].needsAuthentication != "undefined"){
-                category.setNeedsAuthentication(routesJSON[i].needsAuthentication);
-            }
-            if(level == 1){
-                parentIdList = [category.getId()];
-            } else {
-                parentIdList.push(category.getId());
-            }
-            category.setParentIdList(angular.copy(parentIdList));
-            if(routesJSON[i].categoryList) {
-                category.setCategoryList(this.buildNavigationListFromJson(routesJSON[i].categoryList, parentIdList,level));
-                category.setHasCategoryList(true);
-            } else if(routesJSON[i].routes){
-                var routeList = routeFactory.buildNavigationRouteListFromJson(routesJSON[i].routes, category);
-                category.setRouteList(routeList);
-            }
-            categories.push(category);
-        }
-        return categories;
-    };
-
-}]);
-
-app.service('paramFactory', function () {
-
-    this.buildParamFromJson = function (paramJSON) {
-        var param = new Param();
-        param.setDescription(paramJSON.description);
-        param.setType(paramJSON.type);
-        param.setIsOptional(paramJSON.isOptional);
-        param.setDataType(paramJSON.data_type);
-        param.setExampleData(paramJSON.example);
-        if(paramJSON.default){
-            param.setHasDefaultValue(true);
-            param.setDefaultValue(paramJSON.default);
-        }
-        if(paramJSON.listOption){
-            param.setHasPossibleValues(true);
-            param.setPossibleValues(paramJSON.listOption);
-        }
-        if(paramJSON.data_type == 'json'){
-            param.setIsJsonParam(true);
-            if(paramJSON.name){
-                param.setName(paramJSON.name);
-                param.setHasName(true);
-            }
-        } else {
-            param.setName(paramJSON.name);
-        }
-        return param;
-    };
-
-    this.buildParamListFromJson = function (paramsJSON) {
-        var list = [];
-        for(var i=0; i<paramsJSON.length; i++){
-            list.push(this.buildParamFromJson(paramsJSON[i]));
-        }
-        return list;
-    };
-
-});
-
-app.service('projectFactory', function () {
-
-    this.buildEnvironment = function(envListJson){
-        var env = new Environment();
-        env.setUrl(envListJson.url);
-        env.setName(envListJson.name);
-        return env;
-    };
-
-
-    this.buildEnvironmentList = function(envListJson){
-        var list = [];
-        for(var i=0; i<envListJson.length;i++){
-            list.push(this.buildEnvironment(envListJson[i]));
-        }
-        return list;
-    };
-
-
-    this.buildFromJson = function (projectJson) {
-        var project = new Project();
-        project.setName(projectJson.name);
-        project.setDescription(projectJson.description);
-        project.setVersion(projectJson.version);
-        project.setBuildDate(projectJson.buildDate);
-        if(projectJson.environments) {
-            project.setHasEnvironmentList(true);
-            project.setEnvironmentList(this.buildEnvironmentList(projectJson.environments));
-        }
-        return project;
-    };
-
-});
-
-app.service('responseFactory', function () {
-
-    this.buildFromRequestResponse = function (response) {
-        var responseObj = new Response();
-        responseObj.setData(response.data);
-        responseObj.setStatus(response.status);
-        responseObj.setResponseHeaders(response.headers());
-        return responseObj;
-    };
-
-});
-
-app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,paramFactory) {
-
-    this.buildRouteFromJson = function (routesJSON,category) {
-        var route = new Route();
-        route.setName(routesJSON.name);
-        route.setDescription(routesJSON.description);
-        route.setUrl(routesJSON.url);
-        route.setMethod(routesJSON.method.toUpperCase());
-        route.setId(routesJSON.id);
-        if(routesJSON.tags){
-            route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
-        }
-        route.setNeedsAuthentication(category.needsAuthentication());
-        if(typeof routesJSON.needsAuthentication != "undefined"){
-            route.setNeedsAuthentication(routesJSON.needsAuthentication);
-        }
-        if(routesJSON.params) {
-            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
-        }
-        route.setCategory(category);
-        return route;
-    };
-
-    this.buildRouteListFromJson = function (routesJSON, category) {
-        var list = [];
-        for(var i=0; i<routesJSON.length; i++){
-            list.push(this.buildRouteFromJson(routesJSON[i],category));
-        }
-        return list;
-    };
-
-
-    this.buildNavigationRouteFromJson = function (routesJSON, category) {
-        var route = new NavigationRoute();
-        route.setName(routesJSON.name);
-        route.setDescription(routesJSON.description);
-        route.setUrl(routesJSON.url);
-        route.setMethod(routesJSON.method.toUpperCase());
-        route.setId(routesJSON.id);
-        if(routesJSON.tags){
-            route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
-        }
-        route.setNeedsAuthentication(category.needsAuthentication());
-        //route overrides
-        if(typeof routesJSON.needsAuthentication != "undefined"){
-            route.setNeedsAuthentication(routesJSON.needsAuthentication);
-        }
-        if(routesJSON.params){
-            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
-        }
-        route.setCategory(category);
-        return route;
-    };
-
-
-    this.buildNavigationRouteListFromJson = function (routesJSON, category) {
-        var list = [];
-        for(var i=0; i<routesJSON.length; i++){
-            list.push(this.buildNavigationRouteFromJson(routesJSON[i],category));
-        }
-        return list;
-    };
-}]);
-
-app.service('tagFactory', function () {
-
-    this.buildTagFromJson = function (tagJSON) {
-        var tag = new Tag();
-        tag.setName(tagJSON);
-        return tag;
-    };
-
-    this.buildTagListFromJson = function (tagsJSON) {
-        var list = [];
-        for(var i=0; i<tagsJSON.length; i++){
-            list.push(this.buildTagFromJson(tagsJSON[i]));
-        }
-        return list;
-    };
-
-});
 
 app.service('routeControllerHelper', function () {
 
