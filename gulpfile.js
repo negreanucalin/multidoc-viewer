@@ -7,7 +7,7 @@ var gulp = require('gulp');
 
 var nodeModules = 'node_modules/**/*.js';
 var jsFiles = 'js/**/*.js';
-var distFolder = 'dist/multidoc';
+var distFolder = 'dist';
 
 var jsDest = distFolder+'/scripts';
 
@@ -59,23 +59,26 @@ gulp.task('inject', function() {
     var sources = gulp.src(
         [distFolder+'/scripts/vendor.min.js', distFolder+'/scripts/scripts.min.js'], {read: false}, {starttag: '<!-- inject:js -->'}
     );
-    target.pipe(inject(sources, {
+    target.pipe(
+        inject(sources, {
+            addRootSlash:false,
             transform: function (filepath) {
                 arguments[0] = filepath + '?v=' + timeStamp;
                 return inject.transform.apply(inject.transform, arguments);
             }
         }
-    )).pipe(gulp.dest(distFolder));
+    )).pipe(gulp.dest('.'));
     var cssSources = gulp.src(
         [distFolder+'/styles/styles.min.css'], {read: false}, {starttag: '<!-- inject:css -->'}
     );
     return target.pipe(inject(cssSources, {
+            addRootSlash:false,
             transform: function (filepath) {
                 arguments[0] = filepath + '?v=' + timeStamp;
                 return inject.transform.apply(inject.transform, arguments);
             }
         }
-    )).pipe(gulp.dest(distFolder));
+    )).pipe(gulp.dest('.'));
 });
 
 gulp.task('default' ,function () {

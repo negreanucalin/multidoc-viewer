@@ -1,6 +1,7 @@
 var app = angular.module("multidoc", ['ui.router','jsonFormatter','LocalStorageModule','ui.bootstrap']);
 
-app.config(function($stateProvider, $urlRouterProvider) {
+app.config(function($stateProvider, $urlRouterProvider,$qProvider) {
+      $qProvider.errorOnUnhandledRejections(false);
       $stateProvider
 		.state('projectDetails', {
             url: '/project',
@@ -81,6 +82,14 @@ app.config(function($stateProvider, $urlRouterProvider) {
                   'footer':{
                       templateUrl: 'includes/footer.html',
                       controller: 'FooterController'
+                  }
+              }
+          })
+          .state('missingConfig', {
+              url: '/error/config',
+              views: {
+                  'content': {
+                      templateUrl: 'includes/error.html'
                   }
               }
           })

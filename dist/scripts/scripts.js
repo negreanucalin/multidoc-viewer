@@ -1,6 +1,7 @@
 var app = angular.module("multidoc", ['ui.router','jsonFormatter','LocalStorageModule','ui.bootstrap']);
 
-app.config(function($stateProvider, $urlRouterProvider) {
+app.config(function($stateProvider, $urlRouterProvider,$qProvider) {
+      $qProvider.errorOnUnhandledRejections(false);
       $stateProvider
 		.state('projectDetails', {
             url: '/project',
@@ -81,6 +82,14 @@ app.config(function($stateProvider, $urlRouterProvider) {
                   'footer':{
                       templateUrl: 'includes/footer.html',
                       controller: 'FooterController'
+                  }
+              }
+          })
+          .state('missingConfig', {
+              url: '/error/config',
+              views: {
+                  'content': {
+                      templateUrl: 'includes/error.html'
                   }
               }
           })
@@ -277,12 +286,14 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
 }]);
 
 
-app.controller("projectCtrl", ['$scope','projectService',function ($scope,projectService) {
+app.controller("projectCtrl", ['$scope','projectService','$state',function ($scope,projectService,$state) {
 
 	$scope.project = new Project();
 
 	projectService.getProject().then(function(project) {
 		$scope.project = project;
+	}, function(error){
+        $state.go('missingConfig');
 	});
 
 
@@ -1816,7 +1827,6 @@ app.service('projectService',['$q','$http','projectFactory', function ($q,$http,
             }
         }
     };
-
 
     this.getProject = function () {
         var defer = $q.defer();
