@@ -7,7 +7,11 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a ui-sref="projectDetails" class="navbar-brand" href="#">{{project.getName()}} <small>v{{project.getVersion()}}</small></a>
+            <a ui-sref="projectDetails" class="navbar-brand" href="#">
+                {{project.getName()}}
+                <small>{{project.getVersion()}}</small>
+            </a>
+            <img ng-if="project.hasLogo()" ng-src="api_data/{{project.getLogo()}}" class="img-responsive project_logo_header">
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <form class="navbar-form pull-right">

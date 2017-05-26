@@ -5,6 +5,8 @@ var Project = function() {
     this.version = 0;
     this.has_environments = false;
     this.environmentList = [];
+    this.has_logo = false;
+    this.logo = "";
 
     this.setName = function(name){
         this.name = name;
@@ -39,6 +41,25 @@ var Project = function() {
 
     this.hasEnvironmentList = function(){
         return this.has_environments;
+    };
+
+    this.setLogo = function(logo){
+        this.logo = logo;
+        return this;
+    };
+
+    this.getLogo = function(){
+        return this.logo ;
+    };
+
+
+    this.setHasLogo = function(haslogo){
+        this.has_logo = haslogo;
+        return this;
+    };
+
+    this.hasLogo = function(){
+        return this.has_logo;
     };
 
     this.setBuildDate = function(bd){

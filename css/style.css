@@ -58,5 +58,13 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
 .boolean { color: blue; }
 .null { color: magenta; }
 .key { color: red; }
-
-
+.right-content{
+	margin-top: 46px;
+}
+.sandbox_uri_param{
+	color:green;
+}
+.project_logo_header{
+	max-height:50px;
+	margin-left:10px;
+}

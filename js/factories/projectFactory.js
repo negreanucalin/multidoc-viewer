@@ -23,6 +23,10 @@ app.service('projectFactory', function () {
         project.setDescription(projectJson.description);
         project.setVersion(projectJson.version);
         project.setBuildDate(projectJson.buildDate);
+        if(projectJson.logo) {
+            project.setLogo(projectJson.logo);
+            project.setHasLogo(true);
+        }
         if(projectJson.environments) {
             project.setHasEnvironmentList(true);
             project.setEnvironmentList(this.buildEnvironmentList(projectJson.environments));

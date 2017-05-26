@@ -27,9 +27,10 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
      *
      * @param {string} url
      * @param {Param[]} parameters
+     * @param {Environment} environment
      * @returns {*}
      */
-    this.parseSandboxUrl = function(url, parameters,environment) {
+    this.parseSandboxUrl = function(url, parameters, environment) {
         url = this.parseEnvironment(url,environment);
         for(var i=0; i<parameters.length; i++){
             var value = null;
@@ -39,8 +40,9 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
             } else {
                 value = null;
             }
-            var frontSlash = value!=null && value.length>0?"/":"";
-            var realValue = value==null?"":value;
+            var frontSlash = value!==null && value.length>0?"/":"";
+            var realValue = value===null?"":value;
+            realValue = '<span class="sandbox_uri_param">'+realValue+'</span>';
             url = url.replace("[:"+name+"]",realValue);
             url = url.replace("[/:"+name+"]",frontSlash+realValue);
         }

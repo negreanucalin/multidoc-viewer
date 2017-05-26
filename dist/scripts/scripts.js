@@ -584,6 +584,10 @@ app.service('projectFactory', function () {
         project.setDescription(projectJson.description);
         project.setVersion(projectJson.version);
         project.setBuildDate(projectJson.buildDate);
+        if(projectJson.logo) {
+            project.setLogo(projectJson.logo);
+            project.setHasLogo(true);
+        }
         if(projectJson.environments) {
             project.setHasEnvironmentList(true);
             project.setEnvironmentList(this.buildEnvironmentList(projectJson.environments));
@@ -1392,6 +1396,8 @@ var Project = function() {
     this.version = 0;
     this.has_environments = false;
     this.environmentList = [];
+    this.has_logo = false;
+    this.logo = "";
 
     this.setName = function(name){
         this.name = name;
@@ -1426,6 +1432,25 @@ var Project = function() {
 
     this.hasEnvironmentList = function(){
         return this.has_environments;
+    };
+
+    this.setLogo = function(logo){
+        this.logo = logo;
+        return this;
+    };
+
+    this.getLogo = function(){
+        return this.logo ;
+    };
+
+
+    this.setHasLogo = function(haslogo){
+        this.has_logo = haslogo;
+        return this;
+    };
+
+    this.hasLogo = function(){
+        return this.has_logo;
     };
 
     this.setBuildDate = function(bd){
@@ -1918,9 +1943,10 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
      *
      * @param {string} url
      * @param {Param[]} parameters
+     * @param {Environment} environment
      * @returns {*}
      */
-    this.parseSandboxUrl = function(url, parameters,environment) {
+    this.parseSandboxUrl = function(url, parameters, environment) {
         url = this.parseEnvironment(url,environment);
         for(var i=0; i<parameters.length; i++){
             var value = null;
@@ -1930,8 +1956,9 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
             } else {
                 value = null;
             }
-            var frontSlash = value!=null && value.length>0?"/":"";
-            var realValue = value==null?"":value;
+            var frontSlash = value!==null && value.length>0?"/":"";
+            var realValue = value===null?"":value;
+            realValue = '<span class="sandbox_uri_param">'+realValue+'</span>';
             url = url.replace("[:"+name+"]",realValue);
             url = url.replace("[/:"+name+"]",frontSlash+realValue);
         }
