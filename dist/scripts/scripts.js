@@ -328,6 +328,11 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
     $scope.environment = {};
     $scope.tagList = tagService.getTagList();
 
+    if(localStorageService.get('authorization')){
+        //if the user has set authorization on a previous route
+        $scope.authorization = localStorageService.get('authorization');
+    }
+
     $scope.$on('authorizationChanged',function(event,authorization){
         $scope.authorization = authorization;
     });
@@ -1960,14 +1965,14 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
      */
     this.runExample = function (route, paramList,authorization) {
         var defer = $q.defer();
-        if(route.getMethod() == "POST"){
+        var headers = {};
+        if(route.needsAuthentication()){
+            headers[authorization.header] = authorization.token;
+        }
+        if(route.getMethod() === "POST"){
             var http = {};
             var params = this.getEnabledPostVarList(paramList);
-            var headers = {};
             var jsonParam = this.getJsonPostVar(paramList);
-            if(route.needsAuthentication()){
-                headers[authorization.header] = authorization.token;
-            }
             if(jsonParam !== null) {//for json post var with no name
                 headers = {'Content-Type':'application/json; charset=utf-8'};
                 http = $http({
@@ -1993,6 +1998,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
             });
         } else {
             $http({
+                headers: headers,
                 method : route.getMethod(),
                 url : this.parseUrl(route.getUrl(), route.getParameterList())
             }).then(function mySucces(response, status, headers) {

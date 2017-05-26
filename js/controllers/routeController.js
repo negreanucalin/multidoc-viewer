@@ -27,6 +27,11 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
     $scope.environment = {};
     $scope.tagList = tagService.getTagList();
 
+    if(localStorageService.get('authorization')){
+        //if the user has set authorization on a previous route
+        $scope.authorization = localStorageService.get('authorization');
+    }
+
     $scope.$on('authorizationChanged',function(event,authorization){
         $scope.authorization = authorization;
     });
