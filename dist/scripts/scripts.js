@@ -371,7 +371,7 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
      */
     $scope.validateAuthorization = function(route){
         if(route.needsAuthentication()){
-            if(!angular.isDefined($scope.authorization.token) || $scope.authorization.token.length == 0){
+            if(!angular.isDefined($scope.authorization.token) || $scope.authorization.token.length === 0){
                 throw "Route needs authorization";
             }
         }
@@ -407,6 +407,7 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
     /**
      *
      * @param {Route} route
+     * @param {Param[]} postParamList
      */
     $scope.runSandbox = function(route, postParamList) {
         try{
@@ -437,7 +438,7 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
      */
     $scope.tagIsAlreadyAdded = function(tag){
       for(var i=0; i<$scope.tagList.length; i++) {
-          if($scope.tagList[i].getName() == tag.getName()) {
+          if($scope.tagList[i].getName() === tag.getName()) {
               return true;
           }
       }
@@ -1822,11 +1823,12 @@ app.service('projectService',['$q','$http','projectFactory', function ($q,$http,
 
     this.getEnvironmentByName = function(project,name){
         for(var i=0;i<project.getEnvironmentList().length;i++){
-            if(project.getEnvironment(i).getName() == name){
+            if(project.getEnvironment(i).getName() === name){
                 return project.getEnvironment(i);
             }
         }
     };
+
 
     this.getProject = function () {
         var defer = $q.defer();

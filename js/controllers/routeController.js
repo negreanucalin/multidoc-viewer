@@ -70,7 +70,7 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
      */
     $scope.validateAuthorization = function(route){
         if(route.needsAuthentication()){
-            if(!angular.isDefined($scope.authorization.token) || $scope.authorization.token.length == 0){
+            if(!angular.isDefined($scope.authorization.token) || $scope.authorization.token.length === 0){
                 throw "Route needs authorization";
             }
         }
@@ -106,6 +106,7 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
     /**
      *
      * @param {Route} route
+     * @param {Param[]} postParamList
      */
     $scope.runSandbox = function(route, postParamList) {
         try{
@@ -136,7 +137,7 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
      */
     $scope.tagIsAlreadyAdded = function(tag){
       for(var i=0; i<$scope.tagList.length; i++) {
-          if($scope.tagList[i].getName() == tag.getName()) {
+          if($scope.tagList[i].getName() === tag.getName()) {
               return true;
           }
       }

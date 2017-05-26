@@ -2,7 +2,7 @@ app.service('projectService',['$q','$http','projectFactory', function ($q,$http,
 
     this.getEnvironmentByName = function(project,name){
         for(var i=0;i<project.getEnvironmentList().length;i++){
-            if(project.getEnvironment(i).getName() == name){
+            if(project.getEnvironment(i).getName() === name){
                 return project.getEnvironment(i);
             }
         }

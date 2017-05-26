@@ -37,6 +37,12 @@ gulp.task('scripts', function() {
         .pipe(gulp.dest(jsDest));
 });
 
+gulp.task('fonts', function() {
+    return gulp.src(
+            node_path+'bootstrap/fonts/*.*'
+        ).pipe(gulp.dest(distFolder+'/fonts'));
+});
+
 gulp.task('vendor-scripts', function() {
     return gulp.src([
         node_path+'jquery/dist/jquery.min.js',
@@ -84,5 +90,6 @@ gulp.task('inject', function() {
 gulp.task('default' ,function () {
     runSequence('scripts', 'vendor-scripts','minify-css' ,function() {
         gulp.start('inject');
+        gulp.start('fonts');
     });
 });
