@@ -16,7 +16,7 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
     };
 
     this.markVisibleForNavigation = function(categoryList,visibleCategoryList,level,parentIdList){
-        if(typeof level == 'undefined') {
+        if(typeof level === 'undefined') {
             level = 0;
             parentIdList = [];
         }
@@ -24,7 +24,7 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
         for(var i=0; i<categoryList.length; i++) {
             var category = categoryList[i];
             var showChildren = false;
-            if (level == 1) {
+            if (level === 1) {
                 category.setIsVisible(true);
                 category.setIsParent(false);
                 parentIdList = [category.getId()];
@@ -50,6 +50,10 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
                     route.setIsVisible(showChildren);
                     return route;
                 });
+                category.getCategoryList().map(function (category) {
+                    category.setIsVisible(showChildren);
+                    return category;
+                });
             }
         }
     };
@@ -68,15 +72,20 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
         }
     };
 
-    this.getNavigationCategoryList = function (visibleCategoryList) {
+    this.getGUICategoryList = function (visibleCategoryList) {
         var defer = $q.defer();
         $http({
             method : "GET",
             url : "api_data/categories.json"
         }).then(function mySucces(response) {
-            var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList,visibleCategoryList);
-            self.markVisibleForNavigation(categoryList,visibleCategoryList);
-            defer.resolve(categoryList);
+            try{
+                var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList, visibleCategoryList);
+                self.markVisibleForNavigation(categoryList, visibleCategoryList);
+                defer.resolve(categoryList);
+            } catch (err){
+                console.log(err);
+            }
+
         }, function myError(response) {
             defer.reject(response);
         });
@@ -85,7 +94,7 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
 
     this.routeHasTag = function(route,tag){
         for(var i=0; i<route.getTagList().length; i++){
-            if(route.getTag(i).getName() == tag.getName()){
+            if(route.getTag(i).getName() === tag.getName()){
                 return true;
             }
         }
@@ -112,7 +121,8 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
                         routeList[j] = null;
                     }
                 }
-                routeList = routeList.filter(function(n){ return n != null });
+                routeList = routeList.filter(function(n){ return n !== null });
+                categoryList[i].setHasRouteList(true);
                 categoryList[i].setRouteList(routeList);
             }
             if(categoryList[i].hasCategoryList()){
@@ -121,7 +131,7 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
         }
     };
 
-    this.getNavigationCategoryListByTagList = function (tagList, parentIdList) {
+    this.getGUICategoryListByTagList = function (tagList, parentIdList) {
         var defer = $q.defer();
         $http({
             method : "GET",

@@ -1,6 +1,6 @@
 
-app.controller("HeaderController", ['$scope','projectService','routeService','$stateParams','$state','$rootScope','localStorageService',
-    function ($scope,projectService,routeService,$stateParams,$state,$rootScope,localStorageService) {
+app.controller("HeaderController", ['$scope','projectService','routeService','$stateParams','$state','$rootScope','localStorageService','environmentService',
+    function ($scope,projectService,routeService,$stateParams,$state,$rootScope,localStorageService,environmentService) {
 
     $scope.project = new Project();
     $scope.route = {};
@@ -12,15 +12,9 @@ app.controller("HeaderController", ['$scope','projectService','routeService','$s
         $scope.authorization = localStorageService.get('authorization');
     }
 
-    if(localStorageService.get('environment')){
-        $scope.environment = new Environment(localStorageService.get('environment'));
-    }
-
     projectService.getProject().then(function(project) {
         $scope.project = project;
-        if(!$scope.environment){
-            $scope.environment = projectService.getEnvironmentByName($scope.project, 'default');
-        }
+        $scope.environment = environmentService.getEnvironment(project);
     });
 
     $scope.sendAuthorizationChange = function(){
@@ -29,7 +23,7 @@ app.controller("HeaderController", ['$scope','projectService','routeService','$s
     };
 
     $scope.sendEnvironmentChange = function(){
-        localStorageService.set('environment', $scope.environment);
+        environmentService.setEnvironment($scope.environment);
         $rootScope.$broadcast('environmentChanged', $scope.environment);
     };
 

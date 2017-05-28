@@ -9,7 +9,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
      */
     this.parseUrl = function(url, parameters) {
         for(var i=0; i<parameters.length; i++){
-            if(parameters[i].getType() == "uri") {
+            if(parameters[i].getType() === "uri") {
                 url = url.replace("[/:"+parameters[i].getName()+"]","/"+parameters[i].getExampleData());
                 url = url.replace("[:"+parameters[i].getName()+"]",parameters[i].getExampleData());
             }
@@ -21,10 +21,11 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
         if(environment instanceof Environment){
             return url.replace("{{environment}}",environment.getUrl());
         }
+        return url;
     };
 
     /**
-     *
+     * @TODO: Return object (url and styledUrl)
      * @param {string} url
      * @param {Param[]} parameters
      * @param {Environment} environment
@@ -42,7 +43,6 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
             }
             var frontSlash = value!==null && value.length>0?"/":"";
             var realValue = value===null?"":value;
-            realValue = '<span class="sandbox_uri_param">'+realValue+'</span>';
             url = url.replace("[:"+name+"]",realValue);
             url = url.replace("[/:"+name+"]",frontSlash+realValue);
         }
@@ -52,7 +52,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
     this.getEnabledPostVarList = function(postVarList) {
         var list = [];
         for(var i=0;i<postVarList.length;i++){
-            if(postVarList[i].enabled){
+            if(postVarList[i].enabled && !postVarList[i].isFile){
                 list[postVarList[i].name] = postVarList[i].value;
             }
         }
@@ -72,53 +72,89 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
      * @param {Route} route
      * @param {Object[]} paramList
      * @param {Object} authorization
+     * @param {File[]} fileList
      * @returns {*}
      */
-    this.runExample = function (route, paramList,authorization) {
+    this.callRoute = function (route, paramList, fileList, authorization) {
         var defer = $q.defer();
         var headers = {};
-        if(route.needsAuthentication()){
+        var url = route.getRequest().getUrl();
+        var method = route.getRequest().getMethod();
+        if(route.getRequest().needsAuthentication()){
             headers[authorization.header] = authorization.token;
         }
-        if(route.getMethod() === "POST"){
-            var http = {};
-            var params = this.getEnabledPostVarList(paramList);
-            var jsonParam = this.getJsonPostVar(paramList);
-            if(jsonParam !== null) {//for json post var with no name
-                headers = {'Content-Type':'application/json; charset=utf-8'};
-                http = $http({
-                    headers: headers,
-                    method : route.getMethod(),
-                    url : this.parseUrl(route.getUrl(), route.getParameterList()),
-                    data: JSON.parse(jsonParam)
-                });
-            } else {
-                headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
-                http = $http({
-                    transformRequest: transformRequestAsFormPost,
-                    headers: headers,
-                    method : route.getMethod(),
-                    url : this.parseUrl(route.getUrl(), route.getParameterList()),
-                    data: params
-                })
-            }
-            http.then(function mySucces(response, status, headers) {
-                defer.resolve(responseFactory.buildFromRequestResponse(response));
-            }, function myError(response) {
-                defer.reject(response);
+        var params = this.getEnabledPostVarList(paramList);
+        //Should be POST
+        //Also for Delete?
+        if(route.getRequest().hasFileParameter()){
+            headers['Content-Type'] = undefined;
+            var fd = new FormData();
+            var fileListArray = Object.keys(fileList).map(
+                function (key) {
+                    return {'name':key,'file':fileList[key]};
+                }
+            );
+            var paramListArray = Object.keys(params).map(
+                function (key) {
+                    return {'name':key,'value':params[key]};
+                }
+            );
+            angular.forEach(fileListArray,function(file){
+                fd.append(file['name'],file['file']);
             });
-        } else {
+            angular.forEach(paramListArray,function(file){
+                fd.append(file['name'],file['value']);
+            });
             $http({
+                data: fd,
                 headers: headers,
-                method : route.getMethod(),
-                url : this.parseUrl(route.getUrl(), route.getParameterList())
+                method : method,
+                transformRequest: angular.identity,
+                url : url
             }).then(function mySucces(response, status, headers) {
                 defer.resolve(responseFactory.buildFromRequestResponse(response));
             }, function myError(response) {
                 defer.reject(response);
             });
+        } else {
+            if(method === "POST"){
+                var http = {};
+                var jsonParam = this.getJsonPostVar(paramList);
+                if(jsonParam !== null) {//for json post var with no name
+                    headers = {'Content-Type':'application/json; charset=utf-8'};
+                    http = $http({
+                        headers: headers,
+                        method : method,
+                        url : this.parseUrl(url, route.getRequest().getParameterList()),
+                        data: JSON.parse(jsonParam)
+                    });
+                } else {
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+                    http = $http({
+                        transformRequest: transformRequestAsFormPost,
+                        headers: headers,
+                        method : method,
+                        url : this.parseUrl(url, route.getRequest().getParameterList()),
+                        data: params
+                    })
+                }
+                http.then(function mySucces(response, status, headers) {
+                    defer.resolve(responseFactory.buildFromRequestResponse(response));
+                }, function myError(response) {
+                    defer.reject(response);
+                });
+            } else {
+                $http({
+                    headers: headers,
+                    method : method,
+                    url : this.parseUrl(url, route.getRequest().getParameterList())
+                }).then(function mySucces(response, status, headers) {
+                    defer.resolve(responseFactory.buildFromRequestResponse(response));
+                }, function myError(response) {
+                    defer.reject(response);
+                });
+            }
         }
-
         return defer.promise;
     };
 

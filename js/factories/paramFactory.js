@@ -1,11 +1,17 @@
 app.service('paramFactory', function () {
 
-    this.buildParamFromJson = function (paramJSON) {
+    this.buildParamFromJson = function (request, paramJSON) {
         var param = new Param();
         param.setDescription(paramJSON.description);
         param.setType(paramJSON.type);
         param.setIsOptional(paramJSON.isOptional);
         param.setDataType(paramJSON.data_type);
+        if(paramJSON.data_type === 'file') {
+            param.setIsFile(true);
+            if(request){ //not when navigation (menu)
+                request.setHasFileParameter(true);
+            }
+        }
         param.setExampleData(paramJSON.example);
         if(paramJSON.default){
             param.setHasDefaultValue(true);
@@ -15,7 +21,7 @@ app.service('paramFactory', function () {
             param.setHasPossibleValues(true);
             param.setPossibleValues(paramJSON.listOption);
         }
-        if(paramJSON.data_type == 'json'){
+        if(paramJSON.data_type === 'json'){
             param.setIsJsonParam(true);
             if(paramJSON.name){
                 param.setName(paramJSON.name);
@@ -27,10 +33,16 @@ app.service('paramFactory', function () {
         return param;
     };
 
-    this.buildParamListFromJson = function (paramsJSON) {
+    /**
+     *
+     * @param request
+     * @param paramsJSON
+     * @returns {Array}
+     */
+    this.buildParamListFromJson = function (request, paramsJSON) {
         var list = [];
         for(var i=0; i<paramsJSON.length; i++){
-            list.push(this.buildParamFromJson(paramsJSON[i]));
+            list.push(this.buildParamFromJson(request, paramsJSON[i]));
         }
         return list;
     };

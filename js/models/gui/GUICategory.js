@@ -1,4 +1,4 @@
-var NavigationCategory = function() {
+var GUICategory = function() {
 
     this.id = "";
     this.name = "";
@@ -9,6 +9,7 @@ var NavigationCategory = function() {
     this.is_parent = false;
     this.parentIdList = [];
     this.needs_authentication = false;
+    this.has_route_list=false;
 
     this.setId = function(id){
         this.id = id;
@@ -38,12 +39,12 @@ var NavigationCategory = function() {
         return this.routeList[index] ;
     };
 
-    this.removeRoute = function(index){
-        return this.routeList.splice(index,1);
+    this.setHasRouteList = function(hasRoutes){
+        return this.has_route_list = hasRoutes;
     };
 
     this.hasRouteList = function(){
-        return this.routeList.length > 0;
+        return this.has_route_list;
     };
 
     this.setCategoryList = function(categoryList){

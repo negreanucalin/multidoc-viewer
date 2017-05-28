@@ -10,11 +10,11 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
       <!-- inject:js -->
-      <script src="dist/scripts/vendor.min.js?v=1495799550"></script>
-      <script src="dist/scripts/scripts.min.js?v=1495799550"></script>
+      <script src="dist/scripts/vendor.min.js?v=1496841202"></script>
+      <script src="dist/scripts/scripts.min.js?v=1496841202"></script>
       <!-- endinject -->
       <!-- inject:css -->
-	  <link rel="stylesheet" href="dist/styles/styles.min.css?v=1495799550">
+	  <link rel="stylesheet" href="dist/styles/styles.min.css?v=1496841202">
 	  <!-- endinject -->
   </head>
   

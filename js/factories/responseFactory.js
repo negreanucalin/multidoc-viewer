@@ -1,11 +1,14 @@
-app.service('responseFactory', function () {
+app.service('responseFactory', [ 'headerFactory', function (headerFactory) {
 
     this.buildFromRequestResponse = function (response) {
         var responseObj = new Response();
-        responseObj.setData(response.data);
-        responseObj.setStatus(response.status);
-        responseObj.setResponseHeaders(response.headers());
+        responseObj.setCode(response.code);
+        responseObj.setText(response.status);
+        if(response.headers) {
+            responseObj.setHasHeaders(true);
+            responseObj.setHeaders(headerFactory.buildHeaderListFromJson(response.headers));
+        }
         return responseObj;
     };
 
-});
+}]);

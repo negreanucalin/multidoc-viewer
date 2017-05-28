@@ -1,21 +1,18 @@
-app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,paramFactory) {
+app.service('routeFactory', ['requestFactory','tagFactory','paramFactory','statusFactory',function (requestFactory, tagFactory,paramFactory,statusFactory) {
 
-    this.buildRouteFromJson = function (routesJSON,category) {
+    this.buildRouteFromJson = function (routesJSON, category) {
         var route = new Route();
         route.setName(routesJSON.name);
         route.setDescription(routesJSON.description);
-        route.setUrl(routesJSON.url);
-        route.setMethod(routesJSON.method.toUpperCase());
+        route.setRequest(requestFactory.buildRequestFromJson(routesJSON.request));
         route.setId(routesJSON.id);
         if(routesJSON.tags){
+            route.setHasTagList(true);
             route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
         }
-        route.setNeedsAuthentication(category.needsAuthentication());
-        if(typeof routesJSON.needsAuthentication != "undefined"){
-            route.setNeedsAuthentication(routesJSON.needsAuthentication);
-        }
-        if(routesJSON.params) {
-            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
+        if(routesJSON.statusCodes){
+            route.setStatusCodeList(statusFactory.buildListFromJson(routesJSON.statusCodes));
+            route.setHasStatusCodes(true);
         }
         route.setCategory(category);
         return route;
@@ -30,33 +27,25 @@ app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,pa
     };
 
 
-    this.buildNavigationRouteFromJson = function (routesJSON, category) {
-        var route = new NavigationRoute();
+    this.buildGUIRouteFromJson = function (routesJSON, category) {
+        var route = new GUIRoute();
         route.setName(routesJSON.name);
         route.setDescription(routesJSON.description);
-        route.setUrl(routesJSON.url);
-        route.setMethod(routesJSON.method.toUpperCase());
         route.setId(routesJSON.id);
         if(routesJSON.tags){
+            route.setHasTagList(true);
             route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
         }
-        route.setNeedsAuthentication(category.needsAuthentication());
-        //route overrides
-        if(typeof routesJSON.needsAuthentication != "undefined"){
-            route.setNeedsAuthentication(routesJSON.needsAuthentication);
-        }
-        if(routesJSON.params){
-            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
-        }
+        route.setRequest(requestFactory.buildRequestFromJson(routesJSON.request));
         route.setCategory(category);
         return route;
     };
 
 
-    this.buildNavigationRouteListFromJson = function (routesJSON, category) {
+    this.buildGUIRouteListFromJson = function (routesJSON, category) {
         var list = [];
         for(var i=0; i<routesJSON.length; i++){
-            list.push(this.buildNavigationRouteFromJson(routesJSON[i],category));
+            list.push(this.buildGUIRouteFromJson(routesJSON[i],category));
         }
         return list;
     };

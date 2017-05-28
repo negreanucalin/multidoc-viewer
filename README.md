@@ -10,13 +10,17 @@
 
 ### TODO list
 
-* Check if files have been generated
-* Add to localstorage to avoid trafic?
-* Authorization
-* Default environment
-* Better folder yerarchy
+* Add custom headers when running sandbox
+* Handle 404 sandbox error
+* Validation
+	1. Before running either test or Sandbox validate mandatory params
+* Add file sending on Test and Sandbox (pfff)
+	1. First add upload field newar download
+	2. Same with Sandbox
+	3. Check if files can be sent witought file input ?
+* Add modal to display messages (See when needing authorization header)
+* Add to localstorage to avoid trafic (loading of json)?
 * Title of project in document title
-* Json tree show 'undefined', maybe hide if nothing loaded?
 * Add code generation (PHP, Python?, jquery, angular? etc)
 * Add compare feature (Diff of tree structure)
 * Do something with partials: 

@@ -18,16 +18,15 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
 
     if($state.is('projectDetails')) {
         $scope.selectedMenu = 'project_details';
-        categoryService.getNavigationCategoryList([]).then(
+        categoryService.getGUICategoryList([]).then(
             function(categoryList) {
                 $scope.categoryList = categoryList;
-
             }
         );
     }
     if($state.is('routeDetails')) {
         var activeParentList = $scope.getParentListFromState();
-        categoryService.getNavigationCategoryList(activeParentList).then(
+        categoryService.getGUICategoryList(activeParentList).then(
             function(categoryList) {
                 $scope.categoryList = categoryList;
             }
@@ -37,7 +36,7 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
     if($state.is('tagSearch')){
         $scope.isSearchResult = true;
         $scope.selectedMenu = 'project_details';
-        categoryService.getNavigationCategoryListByTagList($scope.tagList).then(
+        categoryService.getGUICategoryListByTagList($scope.tagList).then(
             function(categoryList) {
                 $scope.categoryList = categoryList;
 
@@ -47,7 +46,7 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
     if($state.is('tagSearchRouteDetails')){
         $scope.isSearchResult = true;
         var activeParentList = $scope.getParentListFromState();
-        categoryService.getNavigationCategoryListByTagList($scope.tagList,activeParentList).then(
+        categoryService.getGUICategoryListByTagList($scope.tagList,activeParentList).then(
             function(categoryList) {
                 $scope.categoryList = categoryList;
 
@@ -70,18 +69,19 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
 
     /**
      *
-     * @param {NavigationCategory} category
+     * @param {GUICategory} category
      */
     $scope.toggleVisibility = function(category){
-        if(category.hasCategoryList()){
-            for(var i=0; i<category.getCategoryListCount(); i++){
-                var category = category.getCategory(i);
-                category.setIsVisible(!category.isVisible());
-            }
-        } else {
+        if(category.hasRouteList()){
             for(i=0; i<category.getRouteListCount(); i++){
                 var route = category.getRoute(i);
                 route.setIsVisible(!route.isVisible());
+            }
+        }
+        if(category.hasCategoryList()){
+            for(var i=0; i<category.getCategoryListCount(); i++){
+                var subCategory = category.getCategory(i);
+                subCategory.setIsVisible(!subCategory.isVisible());
             }
         }
     }

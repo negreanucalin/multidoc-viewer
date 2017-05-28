@@ -1,8 +1,8 @@
 app.service('visualHelper', function () {
 
     this.getMethodColorByRoute = function (route) {
-        if( route instanceof Route || route instanceof NavigationRoute) {
-            switch(route.getMethod()) {
+        if( route instanceof Route || route instanceof GUIRoute) {
+            switch(route.getRequest().getMethod()) {
                 case 'GET':
                     return 'primary';
                     break;
@@ -25,13 +25,9 @@ app.service('visualHelper', function () {
         }
     };
 
-    this.addColorToUrlParameter = function (urlParam) {
-        return "<span class='label label-default'>"+urlParam+"</span>";
-    };
-
     /**
      *
-     * @param {NavigationCategory} category
+     * @param {GUICategory} category
      * @returns {boolean}
      */
     this.isAtLeastOneRouteVisible = function(category)

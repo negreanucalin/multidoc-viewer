@@ -1,14 +1,5 @@
 app.service('projectService',['$q','$http','projectFactory', function ($q,$http,projectFactory) {
 
-    this.getEnvironmentByName = function(project,name){
-        for(var i=0;i<project.getEnvironmentList().length;i++){
-            if(project.getEnvironment(i).getName() === name){
-                return project.getEnvironment(i);
-            }
-        }
-    };
-
-
     this.getProject = function () {
         var defer = $q.defer();
         $http({

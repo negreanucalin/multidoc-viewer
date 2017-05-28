@@ -1,14 +1,13 @@
-var Route = function() {
+var GUIRoute = function() {
 
     this.id = "";
     this.name = "";
     this.description = "";
     this.tagList = [];
     this.category = {};
+    this.is_visible = false;
+    this.has_tag_list=false;
     this.request=null;
-    this.statusCodeList = [];
-    this.has_status_codes = false;
-    this.has_tag_list = false;
 
     this.setId = function(id){
         this.id = id;
@@ -63,14 +62,22 @@ var Route = function() {
         return this.tagList;
     };
 
-    this.getTag = function(i){
-        return this.tagList[i];
-    };
-
     this.setTagList = function(tagList){
         return this.tagList = tagList;
     };
 
+    this.getTag = function(i){
+        return this.tagList[i];
+    };
+
+    this.setIsVisible = function(isVisible){
+        this.is_visible = isVisible;
+        return this;
+    };
+
+    this.isVisible = function(){
+        return this.is_visible ;
+    };
 
     this.setHasTagList = function(hasTags){
         this.has_tag_list = hasTags;
@@ -78,24 +85,6 @@ var Route = function() {
 
     this.hasTagList = function(){
         return this.has_tag_list ;
-    };
-
-    this.setHasStatusCodes = function(hasCodes){
-        this.has_status_codes = hasCodes;
-        return this;
-    };
-
-    this.hasStatusCodes = function(){
-        return this.has_status_codes ;
-    };
-
-    this.setStatusCodeList = function(statusCodes){
-        this.statusCodeList = statusCodes;
-        return this;
-    };
-
-    this.getStatusCodeList = function(){
-        return this.statusCodeList ;
     };
 };
 

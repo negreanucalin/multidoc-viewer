@@ -1,3 +1,4 @@
+"use strict";
 var app = angular.module("multidoc", ['ui.router','jsonFormatter','LocalStorageModule','ui.bootstrap']);
 
 app.config(function($stateProvider, $urlRouterProvider,$qProvider) {
@@ -113,6 +114,18 @@ String.prototype.hashCode = function(){
     }
     return hash;
 }
+app.directive('fileModel', ['$parse', function ($parse) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attributes) {
+            element.bind('change', function () {
+                $parse(attributes.fileModel)
+                    .assign(scope,element[0].files)
+                scope.$apply()
+            });
+        }
+    };
+}]);
 
 app.controller("FooterController", ['$scope','$rootScope','tagService','stateService',
     function ($scope,$rootScope,tagService,stateService) {
@@ -152,8 +165,8 @@ app.controller("FooterController", ['$scope','$rootScope','tagService','stateSer
     }]);
 
 
-app.controller("HeaderController", ['$scope','projectService','routeService','$stateParams','$state','$rootScope','localStorageService',
-    function ($scope,projectService,routeService,$stateParams,$state,$rootScope,localStorageService) {
+app.controller("HeaderController", ['$scope','projectService','routeService','$stateParams','$state','$rootScope','localStorageService','environmentService',
+    function ($scope,projectService,routeService,$stateParams,$state,$rootScope,localStorageService,environmentService) {
 
     $scope.project = new Project();
     $scope.route = {};
@@ -165,15 +178,9 @@ app.controller("HeaderController", ['$scope','projectService','routeService','$s
         $scope.authorization = localStorageService.get('authorization');
     }
 
-    if(localStorageService.get('environment')){
-        $scope.environment = new Environment(localStorageService.get('environment'));
-    }
-
     projectService.getProject().then(function(project) {
         $scope.project = project;
-        if(!$scope.environment){
-            $scope.environment = projectService.getEnvironmentByName($scope.project, 'default');
-        }
+        $scope.environment = environmentService.getEnvironment(project);
     });
 
     $scope.sendAuthorizationChange = function(){
@@ -182,7 +189,7 @@ app.controller("HeaderController", ['$scope','projectService','routeService','$s
     };
 
     $scope.sendEnvironmentChange = function(){
-        localStorageService.set('environment', $scope.environment);
+        environmentService.setEnvironment($scope.environment);
         $rootScope.$broadcast('environmentChanged', $scope.environment);
     };
 
@@ -215,16 +222,15 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
 
     if($state.is('projectDetails')) {
         $scope.selectedMenu = 'project_details';
-        categoryService.getNavigationCategoryList([]).then(
+        categoryService.getGUICategoryList([]).then(
             function(categoryList) {
                 $scope.categoryList = categoryList;
-
             }
         );
     }
     if($state.is('routeDetails')) {
         var activeParentList = $scope.getParentListFromState();
-        categoryService.getNavigationCategoryList(activeParentList).then(
+        categoryService.getGUICategoryList(activeParentList).then(
             function(categoryList) {
                 $scope.categoryList = categoryList;
             }
@@ -234,7 +240,7 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
     if($state.is('tagSearch')){
         $scope.isSearchResult = true;
         $scope.selectedMenu = 'project_details';
-        categoryService.getNavigationCategoryListByTagList($scope.tagList).then(
+        categoryService.getGUICategoryListByTagList($scope.tagList).then(
             function(categoryList) {
                 $scope.categoryList = categoryList;
 
@@ -244,7 +250,7 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
     if($state.is('tagSearchRouteDetails')){
         $scope.isSearchResult = true;
         var activeParentList = $scope.getParentListFromState();
-        categoryService.getNavigationCategoryListByTagList($scope.tagList,activeParentList).then(
+        categoryService.getGUICategoryListByTagList($scope.tagList,activeParentList).then(
             function(categoryList) {
                 $scope.categoryList = categoryList;
 
@@ -267,18 +273,19 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
 
     /**
      *
-     * @param {NavigationCategory} category
+     * @param {GUICategory} category
      */
     $scope.toggleVisibility = function(category){
-        if(category.hasCategoryList()){
-            for(var i=0; i<category.getCategoryListCount(); i++){
-                var category = category.getCategory(i);
-                category.setIsVisible(!category.isVisible());
-            }
-        } else {
+        if(category.hasRouteList()){
             for(i=0; i<category.getRouteListCount(); i++){
                 var route = category.getRoute(i);
                 route.setIsVisible(!route.isVisible());
+            }
+        }
+        if(category.hasCategoryList()){
+            for(var i=0; i<category.getCategoryListCount(); i++){
+                var subCategory = category.getCategory(i);
+                subCategory.setIsVisible(!subCategory.isVisible());
             }
         }
     }
@@ -300,10 +307,12 @@ app.controller("projectCtrl", ['$scope','projectService','$state',function ($sco
 }]);
 
 
-app.controller("RouteController", ['$scope','localStorageService','visualHelper','routeService','sandboxService','routeControllerHelper','tagService','$stateParams','$rootScope','$state',
-    function ($scope,localStorageService,visualHelper,routeService,sandboxService,routeControllerHelper,tagService,$stateParams,$rootScope,$state) {
+app.controller("RouteController", [
+    '$scope','localStorageService','projectService','visualHelper','routeService','sandboxService','routeControllerHelper','tagService','$stateParams','$rootScope','$state',
+    function ($scope,localStorageService,projectService,visualHelper,routeService,sandboxService,routeControllerHelper,tagService,$stateParams,$rootScope,$state) {
 
-    $scope.testSandboxOutput = {};
+    $scope.files = [];
+    $scope.sandboxFiles = [];
     $scope.sandboxOutput = {};
     /**
      *
@@ -328,6 +337,11 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
     $scope.environment = {};
     $scope.tagList = tagService.getTagList();
 
+    projectService.getProject().then(function(project) {
+        $scope.environment = environmentService.getEnvironment(project);
+        $scope.resetSandbox();
+    });
+
     if(localStorageService.get('authorization')){
         //if the user has set authorization on a previous route
         $scope.authorization = localStorageService.get('authorization');
@@ -338,12 +352,12 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
     });
 
     $scope.parseUrl = function(){
-        $scope.route.setUrl(
+        $scope.route.getRequest().setUrl(
             sandboxService.parseEnvironment(
                 $scope.originalRouteUrl,
                 $scope.environment)
         );
-        $scope.sandboxRoute.setUrl(
+        $scope.sandboxRoute.getRequest().setUrl(
             sandboxService.parseSandboxUrl(
                 $scope.originalSandBoxRouteUrl,
                 $scope.sandboxRouteUriList,
@@ -366,6 +380,8 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
                     $scope.environment = new Environment(localStorageService.get('environment'));
                 }
                 $scope.resetSandbox();
+            }, function (err){
+                console.log('err', 'Route does not exist');
             }
         );
     }
@@ -375,37 +391,10 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
      * @param route
      */
     $scope.validateAuthorization = function(route){
-        if(route.needsAuthentication()){
+        if(route.getRequest().needsAuthentication()){
             if(!angular.isDefined($scope.authorization.token) || $scope.authorization.token.length === 0){
                 throw "Route needs authorization";
             }
-        }
-    };
-
-    /**
-     *
-     * @param {Route} route
-     */
-    $scope.runExample = function(route) {
-        try {
-            $scope.validateAuthorization(route);
-            var list = $scope.sandboxRoute.getPostParameterList();
-            var sandboxRoutePostList = routeControllerHelper.convertPostParameterList(list);
-            sandboxService.runExample(route, sandboxRoutePostList, $scope.authorization).then(function (reponse) {
-                $scope.testSandboxOutput = reponse;
-            });
-        } catch(error) {
-            alert(error);
-        }
-    };
-
-    $scope.clearExample = function() {
-        $scope.testSandboxOutput = {};
-    };
-
-    $scope.checkDefaultValue = function(postParam) {
-        if(!postParam.enabled && postParam.has_default) {
-            postParam.value = postParam.default;
         }
     };
 
@@ -417,7 +406,7 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
     $scope.runSandbox = function(route, postParamList) {
         try{
             $scope.validateAuthorization(route);
-            sandboxService.runExample(route, postParamList, $scope.authorization).then(function(reponse){
+            sandboxService.callRoute(route, postParamList, $scope.sandboxFiles, $scope.authorization).then(function(reponse){
                 $scope.sandboxOutput = reponse;
             });
         } catch(error) {
@@ -425,14 +414,27 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
         }
     };
 
+    $scope.fileSelected = function (element, name) {
+        $scope.files[name] = element.files[0];
+    };
+    $scope.fileSelectedSandbox = function (element, name) {
+        $scope.sandboxFiles[name] = element.files[0];
+    };
+
+    $scope.checkDefaultValue = function(postParam) {
+        if(!postParam.enabled && postParam.has_default) {
+            postParam.value = postParam.default;
+        }
+    };
+
     $scope.resetSandbox = function() {
         $scope.sandboxOutput = {};
         $scope.sandboxRoute = angular.copy($scope.route);
-        $scope.originalRouteUrl = $scope.route.getUrl();
-        $scope.originalSandBoxRouteUrl = $scope.sandboxRoute.getUrl();
-        var list = $scope.sandboxRoute.getUriParameterList();
+        $scope.originalRouteUrl = $scope.route.getRequest().getUrl();
+        $scope.originalSandBoxRouteUrl = $scope.sandboxRoute.getRequest().getUrl();
+        var list = $scope.sandboxRoute.getRequest().getUriParameterList();
         $scope.sandboxRouteUriList = routeControllerHelper.convertUriParameterList(list);
-        list = $scope.sandboxRoute.getPostParameterList();
+        list = $scope.sandboxRoute.getRequest().getPostParameterList();
         $scope.sandboxRoutePostList = routeControllerHelper.convertPostParameterList(list);
         $scope.parseUrl();
     };
@@ -461,7 +463,13 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
         }
     };
 
-
+    /**
+     *
+     * @param {Param} parameter
+     */
+    $scope.getDownloadLink = function(parameter){
+        return 'api_data/'+parameter.getExampleData();
+    };
 }]);
 
 app.service('categoryFactory',['routeFactory', function (routeFactory) {
@@ -472,14 +480,16 @@ app.service('categoryFactory',['routeFactory', function (routeFactory) {
             var category = new Category();
             category.setId(routesJSON[i].id);
             category.setName(routesJSON[i].name);
-            if(typeof routesJSON[i].needsAuthentication != "undefined"){
+            if(typeof routesJSON[i].needsAuthentication !== "undefined"){
                 category.setNeedsAuthentication(routesJSON[i].needsAuthentication);
             }
-            if(routesJSON[i].categoryList) {
-                category.setCategoryList(this.buildListFromJson(routesJSON[i].categoryList));
-                category.setHasCategoryList(true);
-            } else if(routesJSON[i].routes){
+            if(routesJSON[i].routes){
+                category.setHasRouteList(true);
                 category.setRouteList(routeFactory.buildRouteListFromJson(routesJSON[i].routes, category));
+            }
+            if(routesJSON[i].categoryList) {
+                category.setHasCategoryList(true);
+                category.setCategoryList(this.buildListFromJson(routesJSON[i].categoryList));
             }
             categories.push(category);
         }
@@ -488,30 +498,32 @@ app.service('categoryFactory',['routeFactory', function (routeFactory) {
 
     this.buildNavigationListFromJson = function (routesJSON, parentIdList, level) {
         var categories = [];
-        if(typeof level == 'undefined') {
+        if(typeof level === 'undefined') {
             level = 0;
             parentIdList = [];
         }
         level+=1;
         for(var i=0; i<routesJSON.length; i++) {
-            var category = new NavigationCategory();
+            var category = new GUICategory();
             category.setId(routesJSON[i].id);
             category.setName(routesJSON[i].name);
-            if(typeof routesJSON[i].needsAuthentication != "undefined"){
+            if(typeof routesJSON[i].needsAuthentication !== "undefined"){
                 category.setNeedsAuthentication(routesJSON[i].needsAuthentication);
             }
-            if(level == 1){
+            if(level === 1){
                 parentIdList = [category.getId()];
             } else {
                 parentIdList.push(category.getId());
             }
             category.setParentIdList(angular.copy(parentIdList));
-            if(routesJSON[i].categoryList) {
-                category.setCategoryList(this.buildNavigationListFromJson(routesJSON[i].categoryList, parentIdList,level));
-                category.setHasCategoryList(true);
-            } else if(routesJSON[i].routes){
-                var routeList = routeFactory.buildNavigationRouteListFromJson(routesJSON[i].routes, category);
+            if(routesJSON[i].routes){
+                var routeList = routeFactory.buildGUIRouteListFromJson(routesJSON[i].routes, category);
+                category.setHasRouteList(true);
                 category.setRouteList(routeList);
+            }
+            if(routesJSON[i].categoryList) {
+                category.setHasCategoryList(true);
+                category.setCategoryList(this.buildNavigationListFromJson(routesJSON[i].categoryList, parentIdList, level));
             }
             categories.push(category);
         }
@@ -520,14 +532,39 @@ app.service('categoryFactory',['routeFactory', function (routeFactory) {
 
 }]);
 
+app.service('headerFactory', function () {
+
+    this.buildHeaderFromJson = function (headerJson) {
+        var header = new Header();
+        header.setName(headerJson.name);
+        header.setValue(headerJson.value);
+        return header;
+    };
+
+    this.buildHeaderListFromJson = function (headersJson) {
+        var list = [];
+        for(var i=0; i<headersJson.length; i++){
+            list.push(this.buildHeaderFromJson(headersJson[i]));
+        }
+        return list;
+    };
+
+});
+
 app.service('paramFactory', function () {
 
-    this.buildParamFromJson = function (paramJSON) {
+    this.buildParamFromJson = function (request, paramJSON) {
         var param = new Param();
         param.setDescription(paramJSON.description);
         param.setType(paramJSON.type);
         param.setIsOptional(paramJSON.isOptional);
         param.setDataType(paramJSON.data_type);
+        if(paramJSON.data_type === 'file') {
+            param.setIsFile(true);
+            if(request){ //not when navigation (menu)
+                request.setHasFileParameter(true);
+            }
+        }
         param.setExampleData(paramJSON.example);
         if(paramJSON.default){
             param.setHasDefaultValue(true);
@@ -537,7 +574,7 @@ app.service('paramFactory', function () {
             param.setHasPossibleValues(true);
             param.setPossibleValues(paramJSON.listOption);
         }
-        if(paramJSON.data_type == 'json'){
+        if(paramJSON.data_type === 'json'){
             param.setIsJsonParam(true);
             if(paramJSON.name){
                 param.setName(paramJSON.name);
@@ -549,10 +586,16 @@ app.service('paramFactory', function () {
         return param;
     };
 
-    this.buildParamListFromJson = function (paramsJSON) {
+    /**
+     *
+     * @param request
+     * @param paramsJSON
+     * @returns {Array}
+     */
+    this.buildParamListFromJson = function (request, paramsJSON) {
         var list = [];
         for(var i=0; i<paramsJSON.length; i++){
-            list.push(this.buildParamFromJson(paramsJSON[i]));
+            list.push(this.buildParamFromJson(request, paramsJSON[i]));
         }
         return list;
     };
@@ -597,36 +640,61 @@ app.service('projectFactory', function () {
 
 });
 
-app.service('responseFactory', function () {
+app.service('requestFactory', ['paramFactory','headerFactory',function (paramFactory, headerFactory) {
+
+    /**
+     *
+     * @returns {Request}
+     */
+    this.buildRequestFromJson = function (requestJSON) {
+        var request = new Request();
+        request.setUrl(requestJSON.url);
+        request.setMethod(requestJSON.method.toUpperCase());
+        if(typeof requestJSON.needsAuthentication !== "undefined"){
+            request.setNeedsAuthentication(requestJSON.needsAuthentication);
+        }
+        if(requestJSON.params) {
+            request.setParameterList(paramFactory.buildParamListFromJson(request, requestJSON.params));
+        }
+        if(requestJSON.headers) {
+            request.setHasHeaders(true);
+            request.setHeaders(headerFactory.buildHeaderListFromJson(requestJSON.headers));
+        }
+        return request;
+    };
+
+}]);
+
+app.service('responseFactory', [ 'headerFactory', function (headerFactory) {
 
     this.buildFromRequestResponse = function (response) {
         var responseObj = new Response();
-        responseObj.setData(response.data);
-        responseObj.setStatus(response.status);
-        responseObj.setResponseHeaders(response.headers());
+        responseObj.setCode(response.code);
+        responseObj.setText(response.status);
+        if(response.headers) {
+            responseObj.setHasHeaders(true);
+            responseObj.setHeaders(headerFactory.buildHeaderListFromJson(response.headers));
+        }
         return responseObj;
     };
 
-});
+}]);
 
-app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,paramFactory) {
+app.service('routeFactory', ['requestFactory','tagFactory','paramFactory','statusFactory',function (requestFactory, tagFactory,paramFactory,statusFactory) {
 
-    this.buildRouteFromJson = function (routesJSON,category) {
+    this.buildRouteFromJson = function (routesJSON, category) {
         var route = new Route();
         route.setName(routesJSON.name);
         route.setDescription(routesJSON.description);
-        route.setUrl(routesJSON.url);
-        route.setMethod(routesJSON.method.toUpperCase());
+        route.setRequest(requestFactory.buildRequestFromJson(routesJSON.request));
         route.setId(routesJSON.id);
         if(routesJSON.tags){
+            route.setHasTagList(true);
             route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
         }
-        route.setNeedsAuthentication(category.needsAuthentication());
-        if(typeof routesJSON.needsAuthentication != "undefined"){
-            route.setNeedsAuthentication(routesJSON.needsAuthentication);
-        }
-        if(routesJSON.params) {
-            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
+        if(routesJSON.statusCodes){
+            route.setStatusCodeList(statusFactory.buildListFromJson(routesJSON.statusCodes));
+            route.setHasStatusCodes(true);
         }
         route.setCategory(category);
         return route;
@@ -641,37 +709,49 @@ app.service('routeFactory', ['tagFactory','paramFactory',function (tagFactory,pa
     };
 
 
-    this.buildNavigationRouteFromJson = function (routesJSON, category) {
-        var route = new NavigationRoute();
+    this.buildGUIRouteFromJson = function (routesJSON, category) {
+        var route = new GUIRoute();
         route.setName(routesJSON.name);
         route.setDescription(routesJSON.description);
-        route.setUrl(routesJSON.url);
-        route.setMethod(routesJSON.method.toUpperCase());
         route.setId(routesJSON.id);
         if(routesJSON.tags){
+            route.setHasTagList(true);
             route.setTagList(tagFactory.buildTagListFromJson(routesJSON.tags));
         }
-        route.setNeedsAuthentication(category.needsAuthentication());
-        //route overrides
-        if(typeof routesJSON.needsAuthentication != "undefined"){
-            route.setNeedsAuthentication(routesJSON.needsAuthentication);
-        }
-        if(routesJSON.params){
-            route.setParameterList(paramFactory.buildParamListFromJson(routesJSON.params));
-        }
+        route.setRequest(requestFactory.buildRequestFromJson(routesJSON.request));
         route.setCategory(category);
         return route;
     };
 
 
-    this.buildNavigationRouteListFromJson = function (routesJSON, category) {
+    this.buildGUIRouteListFromJson = function (routesJSON, category) {
         var list = [];
         for(var i=0; i<routesJSON.length; i++){
-            list.push(this.buildNavigationRouteFromJson(routesJSON[i],category));
+            list.push(this.buildGUIRouteFromJson(routesJSON[i],category));
         }
         return list;
     };
 }]);
+
+app.service('statusFactory', function () {
+
+    this.buildListFromJson = function (statusJSON) {
+        var statusList = [];
+        statusJSON.sort(function(a, b) {
+            return parseInt(a.code) - parseInt(b.code);
+        });
+        for(var i=0; i<statusJSON.length; i++) {
+            var status = new Status();
+            status.setCode(statusJSON[i].code);
+            status.setMessage(statusJSON[i].message);
+            status.setDescription(statusJSON[i].description);
+            statusList.push(status);
+        }
+        return statusList;
+    };
+
+
+});
 
 app.service('tagFactory', function () {
 
@@ -721,7 +801,7 @@ app.service('routeControllerHelper', function () {
     this.convertPostParameterList = function (list) {
         var paramList = [];
         for(var i=0; i<list.length;i++){
-        paramList.push({
+            paramList.push({
                 "name":list[i].getName(),
                 "value":list[i].getExampleData(),
                 "required":!list[i].isOptional(),
@@ -732,6 +812,7 @@ app.service('routeControllerHelper', function () {
                 "listValues":list[i].getPossibleValues(),
                 //Json type param
                 "isJson":list[i].isJsonParam(),
+                "isFile":list[i].isFile(),
                 "hasName":list[i].hasName()
             });
         }
@@ -792,8 +873,8 @@ app.value(
 app.service('visualHelper', function () {
 
     this.getMethodColorByRoute = function (route) {
-        if( route instanceof Route || route instanceof NavigationRoute) {
-            switch(route.getMethod()) {
+        if( route instanceof Route || route instanceof GUIRoute) {
+            switch(route.getRequest().getMethod()) {
                 case 'GET':
                     return 'primary';
                     break;
@@ -816,13 +897,9 @@ app.service('visualHelper', function () {
         }
     };
 
-    this.addColorToUrlParameter = function (urlParam) {
-        return "<span class='label label-default'>"+urlParam+"</span>";
-    };
-
     /**
      *
-     * @param {NavigationCategory} category
+     * @param {GUICategory} category
      * @returns {boolean}
      */
     this.isAtLeastOneRouteVisible = function(category)
@@ -846,6 +923,7 @@ var Category = function() {
     this.categoryList = [];
     this.has_category_list = false;
     this.needs_authentication = false;
+    this.has_route_list=false;
 
     this.setId = function(id){
         this.id = id;
@@ -874,8 +952,12 @@ var Category = function() {
         return this.routeList[index] ;
     };
 
+    this.setHasRouteList = function(hasRoutes){
+        return this.has_route_list = hasRoutes;
+    };
+
     this.hasRouteList = function(){
-        return this.routeList.length > 0;
+        return this.has_route_list;
     };
 
     this.setCategoryList = function(categoryList){
@@ -968,88 +1050,11 @@ var Environment = function() {
         }
     }
 };
-var NavigationCategory = function() {
+var Header = function() {
 
-    this.id = "";
-    this.name = "";
-    this.routeList = [];
-    this.categoryList = [];
-    this.has_category_list = false;
-    this.is_visible = false;
-    this.is_parent = false;
-    this.parentIdList = [];
-    this.needs_authentication = false;
+    this.name = null;
 
-    this.setId = function(id){
-        this.id = id;
-        return this;
-    };
-
-    this.getId = function(){
-        return this.id ;
-    };
-
-    this.addRoute = function(route){
-        this.routeList.push(route);
-        return this;
-    };
-
-
-    this.setRouteList = function(list){
-        this.routeList = list;
-        return this;
-    };
-
-    this.getRouteList = function(){
-        return this.routeList ;
-    };
-
-    this.getRoute = function(index){
-        return this.routeList[index] ;
-    };
-
-    this.removeRoute = function(index){
-        return this.routeList.splice(index,1);
-    };
-
-    this.hasRouteList = function(){
-        return this.routeList.length > 0;
-    };
-
-    this.setCategoryList = function(categoryList){
-        this.categoryList = categoryList;
-        return this;
-    };
-
-    this.addCategory = function(category){
-        this.categoryList.push(category);
-        return this;
-    };
-
-    this.getCategoryList = function(){
-        return this.categoryList ;
-    };
-
-    this.getCategory = function(i){
-        return this.categoryList[i];
-    };
-
-    this.getCategoryListCount = function(){
-        return this.categoryList.length ;
-    };
-
-    this.getRouteListCount = function(){
-        return this.routeList.length ;
-    };
-
-    this.hasCategoryList = function(){
-        return this.has_category_list;
-    };
-
-    this.setHasCategoryList = function(hasCatlist){
-        this.has_category_list = hasCatlist;
-        return this;
-    };
+    this.value = null;
 
     this.setName = function(name){
         this.name = name;
@@ -1060,206 +1065,14 @@ var NavigationCategory = function() {
         return this.name ;
     };
 
-    this.setIsVisible = function(isVisible){
-        this.is_visible = isVisible;
+    this.setValue = function(value){
+        this.value = value;
         return this;
     };
 
-    this.isVisible = function(){
-        return this.is_visible ;
+    this.getValue = function(){
+        return this.value ;
     };
-
-    this.setIsParent = function(isParent){
-        this.is_parent = isParent;
-        return this;
-    };
-
-    this.isParent = function(){
-        return this.is_parent ;
-    };
-
-
-    this.addParentId = function(parentId){
-        this.parentIdList.push(parentId);
-        return this;
-    };
-
-    this.getParentIdList = function(){
-        return this.parentIdList ;
-    };
-
-    this.setParentIdList = function(parentList){
-        this.parentIdList =parentList;
-        return this.parentIdList;
-    };
-
-    this.setNeedsAuthentication = function(isNeeded){
-        this.needs_authentication = isNeeded;
-        return this;
-    };
-
-    this.needsAuthentication = function(){
-        return this.needs_authentication ;
-    };
-
-
-};
-
-
-
-
-
-var NavigationRoute = function() {
-
-    this.id = "";
-    this.name = "";
-    this.description = "";
-    this.method = "";
-    this.tagList = [];
-    this.parameterList = [];
-    this.category = {};
-    this.url = "";
-    this.is_visible = false;
-    this.needs_authentication = false;
-
-    this.setId = function(id){
-        this.id = id;
-        return this;
-    };
-
-    this.getId = function(){
-        return this.id ;
-    };
-
-    this.setUrl = function(url){
-        this.url = url;
-        return this;
-    };
-
-    this.getUrl = function(){
-        return this.url ;
-    };
-
-    this.setName = function(name){
-        this.name = name;
-        return this;
-    };
-
-    this.getName = function(){
-        return this.name ;
-    };
-
-    this.setDescription = function(desc){
-        this.description = desc;
-        return this;
-    };
-
-    this.getDescription = function(){
-        return this.description ;
-    };
-
-    this.setMethod = function(method){
-        this.method = method;
-        return this;
-    };
-
-    this.getMethod = function(){
-        return this.method ;
-    };
-
-    this.setCategory = function(category){
-        this.category = category;
-        return this;
-    };
-
-    this.getCategory = function(){
-        return this.category ;
-    };
-
-    this.addTag = function(tag){
-        return this.tagList.push(tag);
-    };
-
-    this.getTagList = function(){
-        return this.tagList;
-    };
-
-    this.setTagList = function(tagList){
-        return this.tagList = tagList;
-    };
-
-    this.getTag = function(i){
-        return this.tagList[i];
-    };
-
-    this.getParameterList = function(){
-        return this.parameterList;
-    };
-
-    this.setParameterList = function(parameterList){
-        return this.parameterList = parameterList;
-    };
-
-    this.hasParameters = function(){
-        return this.parameterList.length >0;
-    };
-
-    this.getUriParameterList = function(){
-        var list = [];
-        for(var i=0; i<this.parameterList.length;i++){
-            if(this.parameterList[i].getType() == "uri") {
-                list.push(this.parameterList[i]);
-            }
-        }
-        return list;
-    };
-
-    this.getPostParameterList = function(){
-        var list = [];
-        for(var i=0; i<this.parameterList.length;i++){
-            if(this.parameterList[i].getType() == "post") {
-                list.push(this.parameterList[i]);
-            }
-        }
-        return list;
-    };
-
-    this.hasPostParameterList = function(){
-        for(var i=0; i<this.parameterList.length;i++){
-            if(this.parameterList[i].getType() == "post") {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    this.hasUriParameterList = function(){
-        for(var i=0; i<this.parameterList.length;i++){
-            if(this.parameterList[i].getType() == "uri") {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    this.setIsVisible = function(isVisible){
-        this.is_visible = isVisible;
-        return this;
-    };
-
-    this.isVisible = function(){
-        return this.is_visible ;
-    };
-
-    this.setNeedsAuthentication = function(isNeeded){
-        this.needs_authentication = isNeeded;
-        return this;
-    };
-
-    this.needsAuthentication = function(){
-        return this.needs_authentication ;
-    };
-
 };
 
 
@@ -1279,6 +1092,7 @@ var Param = function() {
     this.possibleValueList = [];
     this.hasPossibleValueList = false;
     this.isJson = false;
+    this.isFileUpload = false;
     this.thisParamHasName = false;
 
     this.setName = function(name){
@@ -1378,6 +1192,15 @@ var Param = function() {
 
     this.isJsonParam = function(){
         return this.isJson;
+    };
+
+    this.setIsFile = function(isFile){
+        this.isFileUpload = isFile;
+        return this;
+    };
+
+    this.isFile = function(){
+        return this.isFileUpload;
     };
 
     this.setHasName = function(hasName){
@@ -1486,41 +1309,168 @@ var Project = function() {
 
 
 
+var Request = function() {
+
+    this.method = "";
+    this.url = "";
+    this.needs_authentication = false;
+    this.parameterList = [];
+    this.headerList = [];
+    this.has_file_parameter=false;
+    this.has_headers=false;
+
+    this.setHasHeaders = function(hasHeaders){
+        this.has_headers = hasHeaders;
+        return this;
+    };
+
+    this.hasHeaders = function(){
+        return this.has_headers ;
+    };
+
+    this.setUrl = function(url){
+        this.url = url;
+        return this;
+    };
+
+    this.getUrl = function(){
+        return this.url ;
+    };
+
+    this.setHeaders = function(headers){
+        this.headerList = headers;
+        return this;
+    };
+
+    this.getHeaders = function(){
+        return this.headerList ;
+    };
+
+    this.setMethod = function(method){
+        this.method = method;
+        return this;
+    };
+
+    this.getMethod = function(){
+        return this.method ;
+    };
+
+    this.setNeedsAuthentication = function(isNeeded){
+        this.needs_authentication = isNeeded;
+        return this;
+    };
+
+    this.needsAuthentication = function(){
+        return this.needs_authentication ;
+    };
+
+    /**
+     *
+     * @returns {Param[]}
+     */
+    this.getUriParameterList = function(){
+        var list = [];
+        for(var i=0; i<this.parameterList.length;i++){
+            if(this.parameterList[i].getType() === "uri") {
+                list.push(this.parameterList[i]);
+            }
+        }
+        return list;
+    };
+
+    this.getPostParameterList = function(){
+        var list = [];
+        for(var i=0; i<this.parameterList.length;i++){
+            if(this.parameterList[i].getType() === "post") {
+                list.push(this.parameterList[i]);
+            }
+        }
+        return list;
+    };
+
+    this.hasPostParameterList = function(){
+        for(var i=0; i<this.parameterList.length;i++){
+            if(this.parameterList[i].getType() === "post") {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    this.hasUriParameterList = function(){
+        for(var i=0; i<this.parameterList.length;i++){
+            if(this.parameterList[i].getType() === "uri") {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    this.getParameterList = function(){
+        return this.parameterList;
+    };
+
+    this.setParameterList = function(parameterList){
+        return this.parameterList = parameterList;
+    };
+
+    this.hasParameters = function(){
+        return this.parameterList.length >0;
+    };
+
+    this.setHasFileParameter = function(hasFile){
+        this.has_file_parameter = hasFile;
+        return this;
+    };
+
+    this.hasFileParameter = function(){
+        return this.has_file_parameter ;
+    };
+
+};
 var Response = function() {
 
-    this.reponseHeaders = [];
-    this.data = {};
-    this.status = null;
+    this.code = null;
+    this.text = null;
+    this.headerList = [];
+    this.has_headers=false;
 
-    this.setData = function(data){
-        this.data = data;
+
+    this.setHasHeaders = function(hasHeaders){
+        this.has_headers = hasHeaders;
         return this;
     };
 
-    this.getData = function(){
-        return this.data ;
+    this.hasHeaders = function(){
+        return this.has_headers ;
     };
 
-    this.setResponseHeaders = function(headers){
-        this.reponseHeaders = headers;
+    this.setCode = function(code){
+        this.code = code;
         return this;
     };
 
-    this.getResponseHeaders = function(){
-        return this.reponseHeaders ;
+    this.getCode = function(){
+        return this.code ;
     };
 
-    this.setStatus = function(status){
-        this.status = status;
+    this.setText = function(text){
+        this.text = text;
         return this;
     };
 
-    this.getStatus = function(){
-        return this.status ;
+    this.getText = function(){
+        return this.text;
+    };
+
+    this.setHeaders = function(headers){
+        this.headerList = headers;
+    };
+
+    this.getHeaders = function(){
+        return this.headerList;
     };
 };
-
-
 
 
 
@@ -1529,13 +1479,12 @@ var Route = function() {
     this.id = "";
     this.name = "";
     this.description = "";
-    this.method = "";
     this.tagList = [];
-    this.parameterList = [];
     this.category = {};
-    this.url = "";
-    this.needs_authentication = false;
-
+    this.request=null;
+    this.statusCodeList = [];
+    this.has_status_codes = false;
+    this.has_tag_list = false;
 
     this.setId = function(id){
         this.id = id;
@@ -1546,13 +1495,13 @@ var Route = function() {
         return this.id ;
     };
 
-    this.setUrl = function(url){
-        this.url = url;
+    this.setRequest = function(request){
+        this.request = request;
         return this;
     };
 
-    this.getUrl = function(){
-        return this.url ;
+    this.getRequest = function(){
+        return this.request ;
     };
 
     this.setName = function(name){
@@ -1571,15 +1520,6 @@ var Route = function() {
 
     this.getDescription = function(){
         return this.description ;
-    };
-
-    this.setMethod = function(method){
-        this.method = method;
-        return this;
-    };
-
-    this.getMethod = function(){
-        return this.method ;
     };
 
     this.setCategory = function(category){
@@ -1607,71 +1547,72 @@ var Route = function() {
         return this.tagList = tagList;
     };
 
-    this.getParameterList = function(){
-        return this.parameterList;
+
+    this.setHasTagList = function(hasTags){
+        this.has_tag_list = hasTags;
     };
 
-    this.setParameterList = function(parameterList){
-        return this.parameterList = parameterList;
+    this.hasTagList = function(){
+        return this.has_tag_list ;
     };
 
-    this.hasParameters = function(){
-        return this.parameterList.length >0;
-    };
-
-    /**
-     *
-     * @returns {Param[]}
-     */
-    this.getUriParameterList = function(){
-        var list = [];
-        for(var i=0; i<this.parameterList.length;i++){
-            if(this.parameterList[i].getType() == "uri") {
-                list.push(this.parameterList[i]);
-            }
-        }
-        return list;
-    };
-
-    this.getPostParameterList = function(){
-        var list = [];
-        for(var i=0; i<this.parameterList.length;i++){
-            if(this.parameterList[i].getType() == "post") {
-                list.push(this.parameterList[i]);
-            }
-        }
-        return list;
-    };
-
-    this.hasPostParameterList = function(){
-        for(var i=0; i<this.parameterList.length;i++){
-            if(this.parameterList[i].getType() == "post") {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    this.hasUriParameterList = function(){
-        for(var i=0; i<this.parameterList.length;i++){
-            if(this.parameterList[i].getType() == "uri") {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    this.setNeedsAuthentication = function(isNeeded){
-        this.needs_authentication = isNeeded;
+    this.setHasStatusCodes = function(hasCodes){
+        this.has_status_codes = hasCodes;
         return this;
     };
 
-    this.needsAuthentication = function(){
-        return this.needs_authentication ;
+    this.hasStatusCodes = function(){
+        return this.has_status_codes ;
+    };
+
+    this.setStatusCodeList = function(statusCodes){
+        this.statusCodeList = statusCodes;
+        return this;
+    };
+
+    this.getStatusCodeList = function(){
+        return this.statusCodeList ;
     };
 };
 
 
+
+
+
+var Status = function() {
+
+    this.code = null;
+    this.description = null;
+    this.message = null;
+
+    this.setCode = function(code){
+        this.code = code;
+        return this;
+    };
+
+    this.getCode = function(){
+        return this.code ;
+    };
+
+    this.setDescription = function(description){
+        this.description = description;
+        return this;
+    };
+
+    this.getDescription = function(){
+        return this.description ;
+    };
+
+    this.setMessage = function(message){
+        this.message = message;
+        return this;
+    };
+
+    this.getMessage = function(){
+        return this.message ;
+    };
+
+};
 
 
 
@@ -1723,7 +1664,7 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
     };
 
     this.markVisibleForNavigation = function(categoryList,visibleCategoryList,level,parentIdList){
-        if(typeof level == 'undefined') {
+        if(typeof level === 'undefined') {
             level = 0;
             parentIdList = [];
         }
@@ -1731,7 +1672,7 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
         for(var i=0; i<categoryList.length; i++) {
             var category = categoryList[i];
             var showChildren = false;
-            if (level == 1) {
+            if (level === 1) {
                 category.setIsVisible(true);
                 category.setIsParent(false);
                 parentIdList = [category.getId()];
@@ -1757,6 +1698,10 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
                     route.setIsVisible(showChildren);
                     return route;
                 });
+                category.getCategoryList().map(function (category) {
+                    category.setIsVisible(showChildren);
+                    return category;
+                });
             }
         }
     };
@@ -1775,15 +1720,20 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
         }
     };
 
-    this.getNavigationCategoryList = function (visibleCategoryList) {
+    this.getGUICategoryList = function (visibleCategoryList) {
         var defer = $q.defer();
         $http({
             method : "GET",
             url : "api_data/categories.json"
         }).then(function mySucces(response) {
-            var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList,visibleCategoryList);
-            self.markVisibleForNavigation(categoryList,visibleCategoryList);
-            defer.resolve(categoryList);
+            try{
+                var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList, visibleCategoryList);
+                self.markVisibleForNavigation(categoryList, visibleCategoryList);
+                defer.resolve(categoryList);
+            } catch (err){
+                console.log(err);
+            }
+
         }, function myError(response) {
             defer.reject(response);
         });
@@ -1792,7 +1742,7 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
 
     this.routeHasTag = function(route,tag){
         for(var i=0; i<route.getTagList().length; i++){
-            if(route.getTag(i).getName() == tag.getName()){
+            if(route.getTag(i).getName() === tag.getName()){
                 return true;
             }
         }
@@ -1819,7 +1769,8 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
                         routeList[j] = null;
                     }
                 }
-                routeList = routeList.filter(function(n){ return n != null });
+                routeList = routeList.filter(function(n){ return n !== null });
+                categoryList[i].setHasRouteList(true);
                 categoryList[i].setRouteList(routeList);
             }
             if(categoryList[i].hasCategoryList()){
@@ -1828,7 +1779,7 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
         }
     };
 
-    this.getNavigationCategoryListByTagList = function (tagList, parentIdList) {
+    this.getGUICategoryListByTagList = function (tagList, parentIdList) {
         var defer = $q.defer();
         $http({
             method : "GET",
@@ -1849,16 +1800,34 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
 
 }]);
 
-app.service('projectService',['$q','$http','projectFactory', function ($q,$http,projectFactory) {
+app.service('environmentService',['$q','localStorageService', function ($q,localStorageService) {
 
-    this.getEnvironmentByName = function(project,name){
-        for(var i=0;i<project.getEnvironmentList().length;i++){
-            if(project.getEnvironment(i).getName() === name){
-                return project.getEnvironment(i);
+    var self = this;
+
+    this.getEnvironment = function(project) {
+        var environment = null;
+        if(project.hasEnvironmentList()){
+            if(localStorageService.get('environment')){
+                environment = new Environment(localStorageService.get('environment'));
+            } else {//First run
+                environment = self.getDefaultEnvironment(project);
+                self.setEnvironment(environment);
             }
         }
+        return environment;
     };
 
+    this.setEnvironment = function(environment){
+        localStorageService.set('environment', environment);
+    };
+
+    this.getDefaultEnvironment = function(project){
+        return project.getEnvironment(0);
+    };
+
+}]);
+
+app.service('projectService',['$q','$http','projectFactory', function ($q,$http,projectFactory) {
 
     this.getProject = function () {
         var defer = $q.defer();
@@ -1885,18 +1854,17 @@ app.service('routeService',['$q','categoryService', function ($q,categoryService
             if(categoryList[i].hasRouteList()) {
                 for(var j=0; j<categoryList[i].getRouteList().length;j++){
                     route = categoryList[i].getRoute(j);
-                    if(route.getId() == routeId) {
+                    if(route.getId() === parseInt(routeId)) {
                         return route;
                     }
                 }
-            } else {
-                route = this.findRouteInCategory(categoryList[i].getCategoryList(), routeId);
-                if(route !=null){
-                    return route;
-                }
             }
         }
-        return null;
+        for(i=0; i<categoryList.length; i++) {
+            if(categoryList[i].hasCategoryList()){
+                return this.findRouteInCategory(categoryList[i].getCategoryList(), routeId);
+            }
+        }
     };
 
     this.getRouteById = function (id) {
@@ -1909,9 +1877,6 @@ app.service('routeService',['$q','categoryService', function ($q,categoryService
         });
         return defer.promise;
     };
-
-
-
 }]);
 
 app.service('sandboxService',['$q','$http','transformRequestAsFormPost','responseFactory',
@@ -1925,7 +1890,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
      */
     this.parseUrl = function(url, parameters) {
         for(var i=0; i<parameters.length; i++){
-            if(parameters[i].getType() == "uri") {
+            if(parameters[i].getType() === "uri") {
                 url = url.replace("[/:"+parameters[i].getName()+"]","/"+parameters[i].getExampleData());
                 url = url.replace("[:"+parameters[i].getName()+"]",parameters[i].getExampleData());
             }
@@ -1937,10 +1902,11 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
         if(environment instanceof Environment){
             return url.replace("{{environment}}",environment.getUrl());
         }
+        return url;
     };
 
     /**
-     *
+     * @TODO: Return object (url and styledUrl)
      * @param {string} url
      * @param {Param[]} parameters
      * @param {Environment} environment
@@ -1958,7 +1924,6 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
             }
             var frontSlash = value!==null && value.length>0?"/":"";
             var realValue = value===null?"":value;
-            realValue = '<span class="sandbox_uri_param">'+realValue+'</span>';
             url = url.replace("[:"+name+"]",realValue);
             url = url.replace("[/:"+name+"]",frontSlash+realValue);
         }
@@ -1968,7 +1933,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
     this.getEnabledPostVarList = function(postVarList) {
         var list = [];
         for(var i=0;i<postVarList.length;i++){
-            if(postVarList[i].enabled){
+            if(postVarList[i].enabled && !postVarList[i].isFile){
                 list[postVarList[i].name] = postVarList[i].value;
             }
         }
@@ -1988,53 +1953,89 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
      * @param {Route} route
      * @param {Object[]} paramList
      * @param {Object} authorization
+     * @param {File[]} fileList
      * @returns {*}
      */
-    this.runExample = function (route, paramList,authorization) {
+    this.callRoute = function (route, paramList, fileList, authorization) {
         var defer = $q.defer();
         var headers = {};
-        if(route.needsAuthentication()){
+        var url = route.getRequest().getUrl();
+        var method = route.getRequest().getMethod();
+        if(route.getRequest().needsAuthentication()){
             headers[authorization.header] = authorization.token;
         }
-        if(route.getMethod() === "POST"){
-            var http = {};
-            var params = this.getEnabledPostVarList(paramList);
-            var jsonParam = this.getJsonPostVar(paramList);
-            if(jsonParam !== null) {//for json post var with no name
-                headers = {'Content-Type':'application/json; charset=utf-8'};
-                http = $http({
-                    headers: headers,
-                    method : route.getMethod(),
-                    url : this.parseUrl(route.getUrl(), route.getParameterList()),
-                    data: JSON.parse(jsonParam)
-                });
-            } else {
-                headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
-                http = $http({
-                    transformRequest: transformRequestAsFormPost,
-                    headers: headers,
-                    method : route.getMethod(),
-                    url : this.parseUrl(route.getUrl(), route.getParameterList()),
-                    data: params
-                })
-            }
-            http.then(function mySucces(response, status, headers) {
-                defer.resolve(responseFactory.buildFromRequestResponse(response));
-            }, function myError(response) {
-                defer.reject(response);
+        var params = this.getEnabledPostVarList(paramList);
+        //Should be POST
+        //Also for Delete?
+        if(route.getRequest().hasFileParameter()){
+            headers['Content-Type'] = undefined;
+            var fd = new FormData();
+            var fileListArray = Object.keys(fileList).map(
+                function (key) {
+                    return {'name':key,'file':fileList[key]};
+                }
+            );
+            var paramListArray = Object.keys(params).map(
+                function (key) {
+                    return {'name':key,'value':params[key]};
+                }
+            );
+            angular.forEach(fileListArray,function(file){
+                fd.append(file['name'],file['file']);
             });
-        } else {
+            angular.forEach(paramListArray,function(file){
+                fd.append(file['name'],file['value']);
+            });
             $http({
+                data: fd,
                 headers: headers,
-                method : route.getMethod(),
-                url : this.parseUrl(route.getUrl(), route.getParameterList())
+                method : method,
+                transformRequest: angular.identity,
+                url : url
             }).then(function mySucces(response, status, headers) {
                 defer.resolve(responseFactory.buildFromRequestResponse(response));
             }, function myError(response) {
                 defer.reject(response);
             });
+        } else {
+            if(method === "POST"){
+                var http = {};
+                var jsonParam = this.getJsonPostVar(paramList);
+                if(jsonParam !== null) {//for json post var with no name
+                    headers = {'Content-Type':'application/json; charset=utf-8'};
+                    http = $http({
+                        headers: headers,
+                        method : method,
+                        url : this.parseUrl(url, route.getRequest().getParameterList()),
+                        data: JSON.parse(jsonParam)
+                    });
+                } else {
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+                    http = $http({
+                        transformRequest: transformRequestAsFormPost,
+                        headers: headers,
+                        method : method,
+                        url : this.parseUrl(url, route.getRequest().getParameterList()),
+                        data: params
+                    })
+                }
+                http.then(function mySucces(response, status, headers) {
+                    defer.resolve(responseFactory.buildFromRequestResponse(response));
+                }, function myError(response) {
+                    defer.reject(response);
+                });
+            } else {
+                $http({
+                    headers: headers,
+                    method : method,
+                    url : this.parseUrl(url, route.getRequest().getParameterList())
+                }).then(function mySucces(response, status, headers) {
+                    defer.resolve(responseFactory.buildFromRequestResponse(response));
+                }, function myError(response) {
+                    defer.reject(response);
+                });
+            }
         }
-
         return defer.promise;
     };
 
@@ -2085,3 +2086,289 @@ app.service('tagService',['$q','localStorageService', function ($q,localStorageS
         return list;
     };
 }]);
+
+app.service('GUIResponseFactory', function () {
+
+    this.buildFromRequestResponse = function (response) {
+        var responseObj = new GUIResponse();
+        responseObj.setData(response.data);
+        responseObj.setStatusCode(response.status);
+        responseObj.setResponseHeaders(response.headers());
+        return responseObj;
+    };
+
+});
+
+var GUICategory = function() {
+
+    this.id = "";
+    this.name = "";
+    this.routeList = [];
+    this.categoryList = [];
+    this.has_category_list = false;
+    this.is_visible = false;
+    this.is_parent = false;
+    this.parentIdList = [];
+    this.needs_authentication = false;
+    this.has_route_list=false;
+
+    this.setId = function(id){
+        this.id = id;
+        return this;
+    };
+
+    this.getId = function(){
+        return this.id ;
+    };
+
+    this.addRoute = function(route){
+        this.routeList.push(route);
+        return this;
+    };
+
+
+    this.setRouteList = function(list){
+        this.routeList = list;
+        return this;
+    };
+
+    this.getRouteList = function(){
+        return this.routeList ;
+    };
+
+    this.getRoute = function(index){
+        return this.routeList[index] ;
+    };
+
+    this.setHasRouteList = function(hasRoutes){
+        return this.has_route_list = hasRoutes;
+    };
+
+    this.hasRouteList = function(){
+        return this.has_route_list;
+    };
+
+    this.setCategoryList = function(categoryList){
+        this.categoryList = categoryList;
+        return this;
+    };
+
+    this.addCategory = function(category){
+        this.categoryList.push(category);
+        return this;
+    };
+
+    this.getCategoryList = function(){
+        return this.categoryList ;
+    };
+
+    this.getCategory = function(i){
+        return this.categoryList[i];
+    };
+
+    this.getCategoryListCount = function(){
+        return this.categoryList.length ;
+    };
+
+    this.getRouteListCount = function(){
+        return this.routeList.length ;
+    };
+
+    this.hasCategoryList = function(){
+        return this.has_category_list;
+    };
+
+    this.setHasCategoryList = function(hasCatlist){
+        this.has_category_list = hasCatlist;
+        return this;
+    };
+
+    this.setName = function(name){
+        this.name = name;
+        return this;
+    };
+
+    this.getName = function(){
+        return this.name ;
+    };
+
+    this.setIsVisible = function(isVisible){
+        this.is_visible = isVisible;
+        return this;
+    };
+
+    this.isVisible = function(){
+        return this.is_visible ;
+    };
+
+    this.setIsParent = function(isParent){
+        this.is_parent = isParent;
+        return this;
+    };
+
+    this.isParent = function(){
+        return this.is_parent ;
+    };
+
+
+    this.addParentId = function(parentId){
+        this.parentIdList.push(parentId);
+        return this;
+    };
+
+    this.getParentIdList = function(){
+        return this.parentIdList ;
+    };
+
+    this.setParentIdList = function(parentList){
+        this.parentIdList =parentList;
+        return this.parentIdList;
+    };
+
+    this.setNeedsAuthentication = function(isNeeded){
+        this.needs_authentication = isNeeded;
+        return this;
+    };
+
+    this.needsAuthentication = function(){
+        return this.needs_authentication ;
+    };
+
+
+};
+
+
+
+
+
+var GUIResponse = function() {
+
+    this.reponseHeaders = [];
+    this.data = {};
+    this.status = null;
+
+    this.setData = function(data){
+        this.data = data;
+        return this;
+    };
+
+    this.getData = function(){
+        return this.data ;
+    };
+
+    this.setResponseHeaders = function(headers){
+        this.reponseHeaders = headers;
+        return this;
+    };
+
+    this.getResponseHeaders = function(){
+        return this.reponseHeaders ;
+    };
+
+    this.setStatusCode = function(status){
+        this.status = status;
+        return this;
+    };
+
+    this.getStatusCode = function(){
+        return this.status ;
+    };
+};
+
+
+
+
+
+var GUIRoute = function() {
+
+    this.id = "";
+    this.name = "";
+    this.description = "";
+    this.tagList = [];
+    this.category = {};
+    this.is_visible = false;
+    this.has_tag_list=false;
+    this.request=null;
+
+    this.setId = function(id){
+        this.id = id;
+        return this;
+    };
+
+    this.getId = function(){
+        return this.id ;
+    };
+
+    this.setRequest = function(request){
+        this.request = request;
+        return this;
+    };
+
+    this.getRequest = function(){
+        return this.request ;
+    };
+
+    this.setName = function(name){
+        this.name = name;
+        return this;
+    };
+
+    this.getName = function(){
+        return this.name ;
+    };
+
+    this.setDescription = function(desc){
+        this.description = desc;
+        return this;
+    };
+
+    this.getDescription = function(){
+        return this.description ;
+    };
+
+    this.setCategory = function(category){
+        this.category = category;
+        return this;
+    };
+
+    this.getCategory = function(){
+        return this.category ;
+    };
+
+    this.addTag = function(tag){
+        return this.tagList.push(tag);
+    };
+
+    this.getTagList = function(){
+        return this.tagList;
+    };
+
+    this.setTagList = function(tagList){
+        return this.tagList = tagList;
+    };
+
+    this.getTag = function(i){
+        return this.tagList[i];
+    };
+
+    this.setIsVisible = function(isVisible){
+        this.is_visible = isVisible;
+        return this;
+    };
+
+    this.isVisible = function(){
+        return this.is_visible ;
+    };
+
+    this.setHasTagList = function(hasTags){
+        this.has_tag_list = hasTags;
+    };
+
+    this.hasTagList = function(){
+        return this.has_tag_list ;
+    };
+};
+
+
+
+

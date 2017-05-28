@@ -1,8 +1,10 @@
 
-app.controller("RouteController", ['$scope','localStorageService','visualHelper','routeService','sandboxService','routeControllerHelper','tagService','$stateParams','$rootScope','$state',
-    function ($scope,localStorageService,visualHelper,routeService,sandboxService,routeControllerHelper,tagService,$stateParams,$rootScope,$state) {
+app.controller("RouteController", [
+    '$scope','localStorageService','projectService','visualHelper','routeService','sandboxService','routeControllerHelper','tagService','$stateParams','$rootScope','$state',
+    function ($scope,localStorageService,projectService,visualHelper,routeService,sandboxService,routeControllerHelper,tagService,$stateParams,$rootScope,$state) {
 
-    $scope.testSandboxOutput = {};
+    $scope.files = [];
+    $scope.sandboxFiles = [];
     $scope.sandboxOutput = {};
     /**
      *
@@ -27,6 +29,11 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
     $scope.environment = {};
     $scope.tagList = tagService.getTagList();
 
+    projectService.getProject().then(function(project) {
+        $scope.environment = environmentService.getEnvironment(project);
+        $scope.resetSandbox();
+    });
+
     if(localStorageService.get('authorization')){
         //if the user has set authorization on a previous route
         $scope.authorization = localStorageService.get('authorization');
@@ -37,12 +44,12 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
     });
 
     $scope.parseUrl = function(){
-        $scope.route.setUrl(
+        $scope.route.getRequest().setUrl(
             sandboxService.parseEnvironment(
                 $scope.originalRouteUrl,
                 $scope.environment)
         );
-        $scope.sandboxRoute.setUrl(
+        $scope.sandboxRoute.getRequest().setUrl(
             sandboxService.parseSandboxUrl(
                 $scope.originalSandBoxRouteUrl,
                 $scope.sandboxRouteUriList,
@@ -65,6 +72,8 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
                     $scope.environment = new Environment(localStorageService.get('environment'));
                 }
                 $scope.resetSandbox();
+            }, function (err){
+                console.log('err', 'Route does not exist');
             }
         );
     }
@@ -74,37 +83,10 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
      * @param route
      */
     $scope.validateAuthorization = function(route){
-        if(route.needsAuthentication()){
+        if(route.getRequest().needsAuthentication()){
             if(!angular.isDefined($scope.authorization.token) || $scope.authorization.token.length === 0){
                 throw "Route needs authorization";
             }
-        }
-    };
-
-    /**
-     *
-     * @param {Route} route
-     */
-    $scope.runExample = function(route) {
-        try {
-            $scope.validateAuthorization(route);
-            var list = $scope.sandboxRoute.getPostParameterList();
-            var sandboxRoutePostList = routeControllerHelper.convertPostParameterList(list);
-            sandboxService.runExample(route, sandboxRoutePostList, $scope.authorization).then(function (reponse) {
-                $scope.testSandboxOutput = reponse;
-            });
-        } catch(error) {
-            alert(error);
-        }
-    };
-
-    $scope.clearExample = function() {
-        $scope.testSandboxOutput = {};
-    };
-
-    $scope.checkDefaultValue = function(postParam) {
-        if(!postParam.enabled && postParam.has_default) {
-            postParam.value = postParam.default;
         }
     };
 
@@ -116,7 +98,7 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
     $scope.runSandbox = function(route, postParamList) {
         try{
             $scope.validateAuthorization(route);
-            sandboxService.runExample(route, postParamList, $scope.authorization).then(function(reponse){
+            sandboxService.callRoute(route, postParamList, $scope.sandboxFiles, $scope.authorization).then(function(reponse){
                 $scope.sandboxOutput = reponse;
             });
         } catch(error) {
@@ -124,14 +106,27 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
         }
     };
 
+    $scope.fileSelected = function (element, name) {
+        $scope.files[name] = element.files[0];
+    };
+    $scope.fileSelectedSandbox = function (element, name) {
+        $scope.sandboxFiles[name] = element.files[0];
+    };
+
+    $scope.checkDefaultValue = function(postParam) {
+        if(!postParam.enabled && postParam.has_default) {
+            postParam.value = postParam.default;
+        }
+    };
+
     $scope.resetSandbox = function() {
         $scope.sandboxOutput = {};
         $scope.sandboxRoute = angular.copy($scope.route);
-        $scope.originalRouteUrl = $scope.route.getUrl();
-        $scope.originalSandBoxRouteUrl = $scope.sandboxRoute.getUrl();
-        var list = $scope.sandboxRoute.getUriParameterList();
+        $scope.originalRouteUrl = $scope.route.getRequest().getUrl();
+        $scope.originalSandBoxRouteUrl = $scope.sandboxRoute.getRequest().getUrl();
+        var list = $scope.sandboxRoute.getRequest().getUriParameterList();
         $scope.sandboxRouteUriList = routeControllerHelper.convertUriParameterList(list);
-        list = $scope.sandboxRoute.getPostParameterList();
+        list = $scope.sandboxRoute.getRequest().getPostParameterList();
         $scope.sandboxRoutePostList = routeControllerHelper.convertPostParameterList(list);
         $scope.parseUrl();
     };
@@ -160,5 +155,11 @@ app.controller("RouteController", ['$scope','localStorageService','visualHelper'
         }
     };
 
-
+    /**
+     *
+     * @param {Param} parameter
+     */
+    $scope.getDownloadLink = function(parameter){
+        return 'api_data/'+parameter.getExampleData();
+    };
 }]);

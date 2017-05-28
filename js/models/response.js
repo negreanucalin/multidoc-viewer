@@ -1,37 +1,45 @@
 var Response = function() {
 
-    this.reponseHeaders = [];
-    this.data = {};
-    this.status = null;
+    this.code = null;
+    this.text = null;
+    this.headerList = [];
+    this.has_headers=false;
 
-    this.setData = function(data){
-        this.data = data;
+
+    this.setHasHeaders = function(hasHeaders){
+        this.has_headers = hasHeaders;
         return this;
     };
 
-    this.getData = function(){
-        return this.data ;
+    this.hasHeaders = function(){
+        return this.has_headers ;
     };
 
-    this.setResponseHeaders = function(headers){
-        this.reponseHeaders = headers;
+    this.setCode = function(code){
+        this.code = code;
         return this;
     };
 
-    this.getResponseHeaders = function(){
-        return this.reponseHeaders ;
+    this.getCode = function(){
+        return this.code ;
     };
 
-    this.setStatus = function(status){
-        this.status = status;
+    this.setText = function(text){
+        this.text = text;
         return this;
     };
 
-    this.getStatus = function(){
-        return this.status ;
+    this.getText = function(){
+        return this.text;
+    };
+
+    this.setHeaders = function(headers){
+        this.headerList = headers;
+    };
+
+    this.getHeaders = function(){
+        return this.headerList;
     };
 };
-
-
 
 

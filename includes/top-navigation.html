@@ -15,24 +15,25 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <form class="navbar-form pull-right">
-                <div class="form-group" >
-                    <label class="color-text-white" for="environment">Environments</label>
+                <div class="form-group">
+                    <label class="color-text-white" for="environment"
+                           ng-if="project.hasEnvironmentList()">
+                        Environments
+                    </label>
                     <select class="form-control" id="environment"
                             ng-model="environment.url"
-                            ng-change="sendEnvironmentChange()"
-                            ng-disabled="!project.hasEnvironmentList()">
+                            ng-if="project.hasEnvironmentList()"
+                            ng-change="sendEnvironmentChange()">
                         <option ng-repeat="env in project.getEnvironmentList()" value="{{env.getUrl()}}">{{env.getName()}}</option>
                     </select>
                     <input type="text" placeholder="Authorization" class="form-control" value="Authorization"
-                           ng-disabled="!route.needsAuthentication()"
+                           ng-disabled="!route.getRequest().needsAuthentication()"
                            ng-model="authorization.header"
-                           ng-change="sendAuthorizationChange()"
-                    >
+                           ng-change="sendAuthorizationChange()">
                     <input type="text" placeholder="Token" class="form-control"
-                           ng-disabled="!route.needsAuthentication()"
+                           ng-disabled="!route.getRequest().needsAuthentication()"
                            ng-model="authorization.token"
-                           ng-change="sendAuthorizationChange()"
-                    >
+                           ng-change="sendAuthorizationChange()">
                 </div>
             </form>
         </div><!--/.navbar-collapse -->

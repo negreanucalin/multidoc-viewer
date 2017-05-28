@@ -8,18 +8,17 @@ app.service('routeService',['$q','categoryService', function ($q,categoryService
             if(categoryList[i].hasRouteList()) {
                 for(var j=0; j<categoryList[i].getRouteList().length;j++){
                     route = categoryList[i].getRoute(j);
-                    if(route.getId() == routeId) {
+                    if(route.getId() === parseInt(routeId)) {
                         return route;
                     }
                 }
-            } else {
-                route = this.findRouteInCategory(categoryList[i].getCategoryList(), routeId);
-                if(route !=null){
-                    return route;
-                }
             }
         }
-        return null;
+        for(i=0; i<categoryList.length; i++) {
+            if(categoryList[i].hasCategoryList()){
+                return this.findRouteInCategory(categoryList[i].getCategoryList(), routeId);
+            }
+        }
     };
 
     this.getRouteById = function (id) {
@@ -32,7 +31,4 @@ app.service('routeService',['$q','categoryService', function ($q,categoryService
         });
         return defer.promise;
     };
-
-
-
 }]);

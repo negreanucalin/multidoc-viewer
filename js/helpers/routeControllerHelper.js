@@ -28,7 +28,7 @@ app.service('routeControllerHelper', function () {
     this.convertPostParameterList = function (list) {
         var paramList = [];
         for(var i=0; i<list.length;i++){
-        paramList.push({
+            paramList.push({
                 "name":list[i].getName(),
                 "value":list[i].getExampleData(),
                 "required":!list[i].isOptional(),
@@ -39,6 +39,7 @@ app.service('routeControllerHelper', function () {
                 "listValues":list[i].getPossibleValues(),
                 //Json type param
                 "isJson":list[i].isJsonParam(),
+                "isFile":list[i].isFile(),
                 "hasName":list[i].hasName()
             });
         }

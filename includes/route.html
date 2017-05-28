@@ -5,16 +5,16 @@
             <!--<li class="active">[Route_name]</li>-->
         <!--</ol>-->
         <h2>
-            <span ng-class="'label right-5 label-'+visualHelper.getMethodColorByRoute(route)">{{route.getMethod()}}</span>{{route.getName()}}
+            <span ng-class="'label right-5 label-'+visualHelper.getMethodColorByRoute(route)">{{route.getRequest().getMethod()}}</span>{{route.getName()}}
         </h2>
         <div class="span6 offset1">
             <h3>Url</h3>
             <blockquote>
-                <p>{{route.getUrl()}}</p>
+                <p>{{route.getRequest().getUrl()}}</p>
             </blockquote>
             <h3>Description</h3>
             <p class="bg-warning">{{route.getDescription()}}</p>
-            <div ng-if="route.hasUriParameterList()">
+            <div ng-if="route.getRequest().hasUriParameterList()">
                 <h3>Route parameters</h3>
                 <table class="table table-condensed">
                     <tr>
@@ -24,7 +24,7 @@
                         <th>Optional</th>
                         <th>Example</th>
                     </tr>
-                    <tr ng-repeat="parameter in route.getUriParameterList()">
+                    <tr ng-repeat="parameter in route.getRequest().getUriParameterList()">
                         <td>{{parameter.getName()}}</td>
                         <td>{{parameter.getDescription()}}</td>
                         <td>{{parameter.getType()}} / {{parameter.getDataType()}}</td>
@@ -33,7 +33,7 @@
                     </tr>
                 </table>
             </div>
-            <div ng-if="route.hasPostParameterList()">
+            <div ng-if="route.getRequest().hasPostParameterList()">
                 <h3>Route parameters</h3>
                 <table class="table table-condensed">
                     <tr>
@@ -44,47 +44,59 @@
                         <th>Default</th>
                         <th>Example</th>
                     </tr>
-                    <tr ng-repeat="parameter in route.getPostParameterList()">
-                        <td>{{parameter.getName()}}</td>
+                    <tr ng-repeat="parameter in route.getRequest().getPostParameterList()">
+                        <td ng-if="!parameter.isFile()">{{parameter.getName()}}</td>
+                        <td ng-if="parameter.isFile()">
+                            <a ng-href="{{getDownloadLink(parameter)}}">
+                                <span class="glyphicon glyphicon-download"></span>
+                                {{parameter.getName()}}
+                            </a>
+                        </td>
                         <td>{{parameter.getDescription()}}</td>
                         <td>{{parameter.getType()}} / {{parameter.getDataType()}}</td>
                         <td>{{parameter.isOptional()}}</td>
                         <td ng-if="parameter.hasDefaultValue()">{{parameter.getDefaultValue()}}</td>
                         <td ng-if="!parameter.hasDefaultValue()">No</td>
-                        <td>{{parameter.getExampleData()}}</td>
+                        <td ng-if="!parameter.isFile()">{{parameter.getExampleData()}}</td>
+                        <td ng-if="parameter.isFile()">
+                            <input type="file" onchange="angular.element(this).scope().fileSelected(this, angular.element(this).scope().parameter.getName())" />
+                        </td>
                     </tr>
                 </table>
             </div>
-            <button type="button" class="btn btn-primary" ng-click="runExample(route)">Test</button>
-            <button type="button" class="btn btn-primary" ng-click="clearExample()">Clear</button>
-            <h3>Tags</h3>
-            <span ng-repeat="tag in route.getTagList()" class="label label-default right-5 hand-cursor" ng-click="addTag(tag)">
-                {{tag.getName()}}
-            </span>
-
-            <div class="panel panel-primary top-20">
-                <div class="panel-heading">
-                    <h3 class="panel-title panel-primary">Example Output</h3>
-                </div>
-                <h3 ng-if="testSandboxOutput.getStatus() != null">Status: {{testSandboxOutput.getStatus()}}</h3>
-                <json-formatter class="panel-body sandbox_output_example" json=testSandboxOutput.getData() open="1"></json-formatter>
+            <div ng-if="route.hasStatusCodes()">
+                <h3>Status codes</h3>
+                <table class="table table-condensed">
+                    <tr>
+                        <th>Status</th>
+                        <th>Message</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr ng-repeat="status in route.getStatusCodeList()">
+                        <td>{{ status.getCode() }}</td>
+                        <td>{{ status.getMessage() }}</td>
+                        <td>{{ status.getDescription() }}</td>
+                    </tr>
+                </table>
             </div>
-            <div class="panel panel-primary top-20">
-                <div class="panel-heading">
-                    <h3 class="panel-title panel-primary">Output Headers</h3>
+            <div ng-if="route.hasTagList()" class="">
+                <h3 class="">Tags</h3>
+                <div class="">
+                    <span ng-repeat="tag in route.getTagList()" class="label label-default right-5 hand-cursor" ng-click="addTag(tag)">
+                        {{tag.getName()}}
+                    </span>
                 </div>
-                <json-formatter class="panel-body sandbox_output_example" json=testSandboxOutput.getResponseHeaders() open="1"></json-formatter>
             </div>
         </div>
     </div>
     <div class="col-md-6 right-content">
-        <h2 class="text-center">Sandbox</h2>
+        <h2>Sandbox URL</h2>
         <blockquote>
-            <p ng-bind-html="sandboxRoute.getUrl() | trust"></p>
+            <p ng-bind-html="sandboxRoute.getRequest().getUrl() | trust"></p>
         </blockquote>
 
         <form>
-            <div ng-if="sandboxRoute.hasUriParameterList()">
+            <div ng-if="sandboxRoute.getRequest().hasUriParameterList()">
                 <h3>Route params</h3>
                 <div ng-repeat="uriParam in sandboxRouteUriList" class="form-group row">
                     <input type="checkbox" class="col-sm-1 col-form-label"
@@ -104,8 +116,8 @@
                 <hr>
             </div>
 
-            <div ng-if="sandboxRoute.hasPostParameterList()">
-                <h3>Post params</h3>
+            <div ng-if="sandboxRoute.getRequest().hasPostParameterList()">
+                <h3>Route parameters</h3>
                 <div ng-repeat="postPram in sandboxRoutePostList" class="form-group row">
                     <input type="checkbox" class="col-sm-1 col-form-label"
                            ng-model="postPram.enabled"
@@ -120,10 +132,14 @@
                                ng-disabled="!postPram.enabled"
                         ></textarea>
                         <input type="text" class="form-control" placeholder="{{postPram.name}}"
-                               ng-if="!postPram.hasListValues && !postPram.isJson"
+                               ng-if="!postPram.hasListValues && !postPram.isJson && !postPram.isFile"
                                ng-model="postPram.value"
                                ng-disabled="!postPram.enabled"
                         >
+                        <input type="file"
+                               ng-if="postPram.isFile"
+                               ng-disabled="!postPram.enabled"
+                               onchange="angular.element(this).scope().fileSelectedSandbox(this, angular.element(this).scope().postPram.name)" />
                         <select class="form-control"
                                 ng-if="postPram.hasListValues"
                                 ng-model="postPram.value"
@@ -142,7 +158,7 @@
             <div class="panel-heading">
                 <h3 class="panel-title panel-primary">Output Response</h3>
             </div>
-            <h3 ng-if="sandboxOutput.getStatus() != null">Status: {{sandboxOutput.getStatus()}}</h3>
+            <h3 ng-if="sandboxOutput.getStatusCode() != null">Status: {{sandboxOutput.getStatusCode()}}</h3>
             <json-formatter class="panel-body sandbox_output_example" json=sandboxOutput.getData() open="1"></json-formatter>
         </div>
         <div class="panel panel-primary top-20">

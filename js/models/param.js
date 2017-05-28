@@ -11,6 +11,7 @@ var Param = function() {
     this.possibleValueList = [];
     this.hasPossibleValueList = false;
     this.isJson = false;
+    this.isFileUpload = false;
     this.thisParamHasName = false;
 
     this.setName = function(name){
@@ -110,6 +111,15 @@ var Param = function() {
 
     this.isJsonParam = function(){
         return this.isJson;
+    };
+
+    this.setIsFile = function(isFile){
+        this.isFileUpload = isFile;
+        return this;
+    };
+
+    this.isFile = function(){
+        return this.isFileUpload;
     };
 
     this.setHasName = function(hasName){

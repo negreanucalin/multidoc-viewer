@@ -1,3 +1,4 @@
+"use strict";
 var app = angular.module("multidoc", ['ui.router','jsonFormatter','LocalStorageModule','ui.bootstrap']);
 
 app.config(function($stateProvider, $urlRouterProvider,$qProvider) {

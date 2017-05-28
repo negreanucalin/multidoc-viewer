@@ -6,6 +6,7 @@ var Category = function() {
     this.categoryList = [];
     this.has_category_list = false;
     this.needs_authentication = false;
+    this.has_route_list=false;
 
     this.setId = function(id){
         this.id = id;
@@ -34,8 +35,12 @@ var Category = function() {
         return this.routeList[index] ;
     };
 
+    this.setHasRouteList = function(hasRoutes){
+        return this.has_route_list = hasRoutes;
+    };
+
     this.hasRouteList = function(){
-        return this.routeList.length > 0;
+        return this.has_route_list;
     };
 
     this.setCategoryList = function(categoryList){
