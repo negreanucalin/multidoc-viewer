@@ -114,18 +114,6 @@ String.prototype.hashCode = function(){
     }
     return hash;
 }
-app.directive('fileModel', ['$parse', function ($parse) {
-    return {
-        restrict: 'A',
-        link: function (scope, element, attributes) {
-            element.bind('change', function () {
-                $parse(attributes.fileModel)
-                    .assign(scope,element[0].files)
-                scope.$apply()
-            });
-        }
-    };
-}]);
 
 app.controller("FooterController", ['$scope','$rootScope','tagService','stateService',
     function ($scope,$rootScope,tagService,stateService) {
@@ -472,6 +460,18 @@ app.controller("RouteController", [
     };
 }]);
 
+app.directive('fileModel', ['$parse', function ($parse) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attributes) {
+            element.bind('change', function () {
+                $parse(attributes.fileModel)
+                    .assign(scope,element[0].files)
+                scope.$apply()
+            });
+        }
+    };
+}]);
 app.service('categoryFactory',['routeFactory', function (routeFactory) {
 
     this.buildListFromJson = function (routesJSON) {
@@ -1871,7 +1871,8 @@ app.service('routeService',['$q','categoryService', function ($q,categoryService
         var defer = $q.defer();
         categoryService.getCategoryList().then(
             function mySucces(categoryList) {
-                defer.resolve(self.findRouteInCategory(categoryList,id));
+                console.log('categoryList',categoryList);
+                defer.resolve(self.findRouteInCategory(categoryList, id));
         }, function myError(response) {
             defer.reject(response);
         });

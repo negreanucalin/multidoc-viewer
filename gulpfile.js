@@ -21,7 +21,10 @@ gulp.task('minify-css', function() {
             node_path+'bootstrap/dist/css/bootstrap.min.css',
             node_path+'angular-ui-bootstrap/dist/ui-bootstrap-csp.css'
         ])
-        .pipe(cleanCSS({compatibility: 'ie8'}))
+        .pipe(cleanCSS({
+            compatibility: "ie8",
+            rebase: false
+        }))
         .pipe(concat('styles.css'))
         .pipe(gulp.dest(distFolder+'/styles'))
         .pipe(rename('styles.min.css'))
