@@ -670,7 +670,7 @@ app.service('responseFactory', [ 'headerFactory', function (headerFactory) {
     this.buildFromRequestResponse = function (response) {
         var responseObj = new Response();
         responseObj.setCode(response.code);
-        responseObj.setText(response.status);
+        responseObj.setText(response.text.trim());
         if(response.headers) {
             responseObj.setHasHeaders(true);
             responseObj.setHeaders(headerFactory.buildHeaderListFromJson(response.headers));
@@ -680,13 +680,17 @@ app.service('responseFactory', [ 'headerFactory', function (headerFactory) {
 
 }]);
 
-app.service('routeFactory', ['requestFactory','tagFactory','paramFactory','statusFactory',function (requestFactory, tagFactory,paramFactory,statusFactory) {
+app.service('routeFactory', ['requestFactory','responseFactory','tagFactory','paramFactory','statusFactory',function (requestFactory, responseFactory, tagFactory,paramFactory,statusFactory) {
 
     this.buildRouteFromJson = function (routesJSON, category) {
         var route = new Route();
         route.setName(routesJSON.name);
         route.setDescription(routesJSON.description);
         route.setRequest(requestFactory.buildRequestFromJson(routesJSON.request));
+        if(routesJSON.response){
+            route.setHasResponse(true);
+            route.setResponse(responseFactory.buildFromRequestResponse(routesJSON.response));
+        }
         route.setId(routesJSON.id);
         if(routesJSON.tags){
             route.setHasTagList(true);
@@ -770,150 +774,6 @@ app.service('tagFactory', function () {
     };
 
 });
-
-app.service('routeControllerHelper', function () {
-
-    /**
-     *
-     * @param {Param[]} list
-     */
-    this.convertUriParameterList = function (list) {
-        var paramList = [];
-        for(var i=0; i<list.length;i++){
-            paramList.push({
-                "name":list[i].getName(),
-                "value":list[i].getExampleData(),
-                "required":!list[i].isOptional(),
-                "enabled":true,
-                "has_default":list[i].hasDefaultValue(),
-                "default":list[i].getDefaultValue(),
-                "hasListValues":list[i].hasPossibleValues(),
-                "listValues":list[i].getPossibleValues()
-            });
-        }
-        return paramList;
-    };
-
-    /**
-     *
-     * @param {Param[]} list
-     */
-    this.convertPostParameterList = function (list) {
-        var paramList = [];
-        for(var i=0; i<list.length;i++){
-            paramList.push({
-                "name":list[i].getName(),
-                "value":list[i].getExampleData(),
-                "required":!list[i].isOptional(),
-                "enabled":true,
-                "has_default":list[i].hasDefaultValue(),
-                "default":list[i].getDefaultValue(),
-                "hasListValues":list[i].hasPossibleValues(),
-                "listValues":list[i].getPossibleValues(),
-                //Json type param
-                "isJson":list[i].isJsonParam(),
-                "isFile":list[i].isFile(),
-                "hasName":list[i].hasName()
-            });
-        }
-        return paramList;
-    };
-
-
-
-
-
-});
-
-
-app.factory(
-    "transformRequestAsFormPost",
-    function() {
-        function transformRequest( data, getHeaders ) {
-            var headers = getHeaders();
-            headers[ "Content-type" ] = "application/x-www-form-urlencoded; charset=utf-8";
-            return( serializeData( data ) );
-        }
-        return( transformRequest );
-
-        function serializeData( data ) {
-            // If this is not an object, defer to native stringification.
-            if ( ! angular.isObject( data ) ) {
-                return( ( data == null ) ? "" : data.toString() );
-            }
-            var buffer = [];
-            // Serialize each key in the object.
-            for ( var name in data ) {
-                if ( ! data.hasOwnProperty( name ) ) {
-                    continue;
-                }
-                var value = data[ name ];
-                buffer.push(
-                    encodeURIComponent( name ) +
-                    "=" +
-                    encodeURIComponent( ( value == null ) ? "" : value )
-                );
-            }
-            // Serialize the buffer and clean it up for transportation.
-            var source = buffer
-                .join( "&" )
-                .replace( /%20/g, "+" )
-                ;
-            return( source );
-        }
-    }
-);
-app.value(
-    "$sanitize",
-    function( html ) {
-        return( html );
-    }
-);
-
-app.service('visualHelper', function () {
-
-    this.getMethodColorByRoute = function (route) {
-        if( route instanceof Route || route instanceof GUIRoute) {
-            switch(route.getRequest().getMethod()) {
-                case 'GET':
-                    return 'primary';
-                    break;
-                case 'PUT':
-                    return 'info';
-                    break;
-                case 'POST':
-                    return 'success';
-                    break;
-                case 'PATCH':
-                    return 'warning';
-                    break;
-                case 'DELETE':
-                    return 'danger';
-                    break;
-                default:
-                    return 'default';
-                    break;
-            }
-        }
-    };
-
-    /**
-     *
-     * @param {GUICategory} category
-     * @returns {boolean}
-     */
-    this.isAtLeastOneRouteVisible = function(category)
-    {
-        for(var i=0; i<category.getRouteList().length;i++){
-            if(category.getRoute(i).isVisible()){
-                return true;
-            }
-        }
-        return false;
-    }
-
-});
-
 
 var Category = function() {
 
@@ -1481,10 +1341,12 @@ var Route = function() {
     this.description = "";
     this.tagList = [];
     this.category = {};
+    this.response = {};
     this.request=null;
     this.statusCodeList = [];
     this.has_status_codes = false;
     this.has_tag_list = false;
+    this.has_response=false;
 
     this.setId = function(id){
         this.id = id;
@@ -1494,6 +1356,23 @@ var Route = function() {
     this.getId = function(){
         return this.id ;
     };
+
+    this.setResponse = function(Response){
+        this.response = Response;
+    };
+
+    this.getResponse = function(){
+        return this.response ;
+    };
+
+    this.setHasResponse = function(hasResponse){
+        this.has_response = hasResponse;
+    };
+
+    this.hasResponse = function(){
+        return this.has_response ;
+    };
+
 
     this.setRequest = function(request){
         this.request = request;
@@ -1644,6 +1523,150 @@ var Tag = function() {
 
 
 
+
+
+app.service('routeControllerHelper', function () {
+
+    /**
+     *
+     * @param {Param[]} list
+     */
+    this.convertUriParameterList = function (list) {
+        var paramList = [];
+        for(var i=0; i<list.length;i++){
+            paramList.push({
+                "name":list[i].getName(),
+                "value":list[i].getExampleData(),
+                "required":!list[i].isOptional(),
+                "enabled":true,
+                "has_default":list[i].hasDefaultValue(),
+                "default":list[i].getDefaultValue(),
+                "hasListValues":list[i].hasPossibleValues(),
+                "listValues":list[i].getPossibleValues()
+            });
+        }
+        return paramList;
+    };
+
+    /**
+     *
+     * @param {Param[]} list
+     */
+    this.convertPostParameterList = function (list) {
+        var paramList = [];
+        for(var i=0; i<list.length;i++){
+            paramList.push({
+                "name":list[i].getName(),
+                "value":list[i].getExampleData(),
+                "required":!list[i].isOptional(),
+                "enabled":true,
+                "has_default":list[i].hasDefaultValue(),
+                "default":list[i].getDefaultValue(),
+                "hasListValues":list[i].hasPossibleValues(),
+                "listValues":list[i].getPossibleValues(),
+                //Json type param
+                "isJson":list[i].isJsonParam(),
+                "isFile":list[i].isFile(),
+                "hasName":list[i].hasName()
+            });
+        }
+        return paramList;
+    };
+
+
+
+
+
+});
+
+
+app.factory(
+    "transformRequestAsFormPost",
+    function() {
+        function transformRequest( data, getHeaders ) {
+            var headers = getHeaders();
+            headers[ "Content-type" ] = "application/x-www-form-urlencoded; charset=utf-8";
+            return( serializeData( data ) );
+        }
+        return( transformRequest );
+
+        function serializeData( data ) {
+            // If this is not an object, defer to native stringification.
+            if ( ! angular.isObject( data ) ) {
+                return( ( data == null ) ? "" : data.toString() );
+            }
+            var buffer = [];
+            // Serialize each key in the object.
+            for ( var name in data ) {
+                if ( ! data.hasOwnProperty( name ) ) {
+                    continue;
+                }
+                var value = data[ name ];
+                buffer.push(
+                    encodeURIComponent( name ) +
+                    "=" +
+                    encodeURIComponent( ( value == null ) ? "" : value )
+                );
+            }
+            // Serialize the buffer and clean it up for transportation.
+            var source = buffer
+                .join( "&" )
+                .replace( /%20/g, "+" )
+                ;
+            return( source );
+        }
+    }
+);
+app.value(
+    "$sanitize",
+    function( html ) {
+        return( html );
+    }
+);
+
+app.service('visualHelper', function () {
+
+    this.getMethodColorByRoute = function (route) {
+        if( route instanceof Route || route instanceof GUIRoute) {
+            switch(route.getRequest().getMethod()) {
+                case 'GET':
+                    return 'primary';
+                    break;
+                case 'PUT':
+                    return 'info';
+                    break;
+                case 'POST':
+                    return 'success';
+                    break;
+                case 'PATCH':
+                    return 'warning';
+                    break;
+                case 'DELETE':
+                    return 'danger';
+                    break;
+                default:
+                    return 'default';
+                    break;
+            }
+        }
+    };
+
+    /**
+     *
+     * @param {GUICategory} category
+     * @returns {boolean}
+     */
+    this.isAtLeastOneRouteVisible = function(category)
+    {
+        for(var i=0; i<category.getRouteList().length;i++){
+            if(category.getRoute(i).isVisible()){
+                return true;
+            }
+        }
+        return false;
+    }
+
+});
 
 
 app.service('categoryService',['$q','$http','categoryFactory', function ($q,$http,categoryFactory) {
@@ -1871,7 +1894,6 @@ app.service('routeService',['$q','categoryService', function ($q,categoryService
         var defer = $q.defer();
         categoryService.getCategoryList().then(
             function mySucces(categoryList) {
-                console.log('categoryList',categoryList);
                 defer.resolve(self.findRouteInCategory(categoryList, id));
         }, function myError(response) {
             defer.reject(response);
@@ -1951,6 +1973,22 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
     };
 
     /**
+     *
+     * @param headers
+     * @param {Route} route
+     */
+    this.overrideHeadersFromRoute = function (headers, route)
+    {
+        if(route.getRequest().hasHeaders()){
+            var routeHeaderList = route.getResponse().getHeaders();
+            for(var i=0; i<routeHeaderList.length; i++){
+                headers[routeHeaderList[i].getName()] = routeHeaderList[i].getValue();
+            }
+        }
+        return headers;
+    };
+
+    /**
      * @param {Route} route
      * @param {Object[]} paramList
      * @param {Object} authorization
@@ -1969,6 +2007,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
         //Should be POST
         //Also for Delete?
         if(route.getRequest().hasFileParameter()){
+            //Default header will be set to form-multipart
             headers['Content-Type'] = undefined;
             var fd = new FormData();
             var fileListArray = Object.keys(fileList).map(
@@ -2004,6 +2043,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
                 var jsonParam = this.getJsonPostVar(paramList);
                 if(jsonParam !== null) {//for json post var with no name
                     headers = {'Content-Type':'application/json; charset=utf-8'};
+                    headers = this.overrideHeadersFromRoute(headers, route);
                     http = $http({
                         headers: headers,
                         method : method,
@@ -2012,6 +2052,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
                     });
                 } else {
                     headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+                    headers = this.overrideHeadersFromRoute(headers, route);
                     http = $http({
                         transformRequest: transformRequestAsFormPost,
                         headers: headers,
@@ -2026,6 +2067,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
                     defer.reject(response);
                 });
             } else {
+                headers = this.overrideHeadersFromRoute(headers, route);
                 $http({
                     headers: headers,
                     method : method,

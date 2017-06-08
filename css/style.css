@@ -80,3 +80,6 @@ a > .label {
 	border-color: white;
 	border: 1px solid;
 }
+.response-text{
+	white-space: pre;
+}

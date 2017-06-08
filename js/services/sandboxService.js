@@ -69,6 +69,22 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
     };
 
     /**
+     *
+     * @param headers
+     * @param {Route} route
+     */
+    this.overrideHeadersFromRoute = function (headers, route)
+    {
+        if(route.getRequest().hasHeaders()){
+            var routeHeaderList = route.getResponse().getHeaders();
+            for(var i=0; i<routeHeaderList.length; i++){
+                headers[routeHeaderList[i].getName()] = routeHeaderList[i].getValue();
+            }
+        }
+        return headers;
+    };
+
+    /**
      * @param {Route} route
      * @param {Object[]} paramList
      * @param {Object} authorization
@@ -87,6 +103,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
         //Should be POST
         //Also for Delete?
         if(route.getRequest().hasFileParameter()){
+            //Default header will be set to form-multipart
             headers['Content-Type'] = undefined;
             var fd = new FormData();
             var fileListArray = Object.keys(fileList).map(
@@ -122,6 +139,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
                 var jsonParam = this.getJsonPostVar(paramList);
                 if(jsonParam !== null) {//for json post var with no name
                     headers = {'Content-Type':'application/json; charset=utf-8'};
+                    headers = this.overrideHeadersFromRoute(headers, route);
                     http = $http({
                         headers: headers,
                         method : method,
@@ -130,6 +148,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
                     });
                 } else {
                     headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+                    headers = this.overrideHeadersFromRoute(headers, route);
                     http = $http({
                         transformRequest: transformRequestAsFormPost,
                         headers: headers,
@@ -144,6 +163,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
                     defer.reject(response);
                 });
             } else {
+                headers = this.overrideHeadersFromRoute(headers, route);
                 $http({
                     headers: headers,
                     method : method,

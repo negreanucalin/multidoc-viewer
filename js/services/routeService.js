@@ -25,7 +25,6 @@ app.service('routeService',['$q','categoryService', function ($q,categoryService
         var defer = $q.defer();
         categoryService.getCategoryList().then(
             function mySucces(categoryList) {
-                console.log('categoryList',categoryList);
                 defer.resolve(self.findRouteInCategory(categoryList, id));
         }, function myError(response) {
             defer.reject(response);

@@ -5,10 +5,12 @@ var Route = function() {
     this.description = "";
     this.tagList = [];
     this.category = {};
+    this.response = {};
     this.request=null;
     this.statusCodeList = [];
     this.has_status_codes = false;
     this.has_tag_list = false;
+    this.has_response=false;
 
     this.setId = function(id){
         this.id = id;
@@ -18,6 +20,23 @@ var Route = function() {
     this.getId = function(){
         return this.id ;
     };
+
+    this.setResponse = function(Response){
+        this.response = Response;
+    };
+
+    this.getResponse = function(){
+        return this.response ;
+    };
+
+    this.setHasResponse = function(hasResponse){
+        this.has_response = hasResponse;
+    };
+
+    this.hasResponse = function(){
+        return this.has_response ;
+    };
+
 
     this.setRequest = function(request){
         this.request = request;

@@ -34,7 +34,7 @@
                 </table>
             </div>
             <div ng-if="route.getRequest().hasPostParameterList()">
-                <h3>Route parameters</h3>
+                <h3>Post parameters</h3>
                 <table class="table table-condensed">
                     <tr>
                         <th>Name</th>
@@ -45,7 +45,10 @@
                         <th>Example</th>
                     </tr>
                     <tr ng-repeat="parameter in route.getRequest().getPostParameterList()">
-                        <td ng-if="!parameter.isFile()">{{parameter.getName()}}</td>
+                        <td ng-if="!parameter.isFile()">
+                            <p ng-if="parameter.getName()">{{parameter.getName()}}</p>
+                            <p ng-if="!parameter.getName()">N/A</p>
+                        </td>
                         <td ng-if="parameter.isFile()">
                             <a ng-href="{{getDownloadLink(parameter)}}">
                                 <span class="glyphicon glyphicon-download"></span>
@@ -63,6 +66,47 @@
                         </td>
                     </tr>
                 </table>
+            </div>
+            <div ng-if="route.getRequest().hasHeaders()">
+                <h3>Request headers</h3>
+                <table class="table table-condensed">
+                    <tr>
+                        <th>Header</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr ng-repeat="header in route.getRequest().getHeaders()">
+                        <td>{{ header.getName() }}</td>
+                        <td>{{ header.getValue() }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div ng-if="route.hasResponse()">
+                <h3>Response</h3>
+                <div class="row">
+                    <div class="col-md-2">
+                        <h4>HTTP code</h4>
+                        <div>
+                            {{route.getResponse().getCode()}}
+                        </div>
+                    </div>
+                    <div class="col-md-10">
+                        <h4>Response text</h4>
+                        <code class="response-text">{{route.getResponse().getText() | trust}}</code>
+                    </div>
+                </div>
+                <div ng-if="route.getResponse().hasHeaders()">
+                    <h4>Response headers</h4>
+                    <table class="table table-condensed">
+                        <tr>
+                            <th>Header</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr ng-repeat="header in route.getRequest().getHeaders()">
+                            <td>{{ header.getName() }}</td>
+                            <td>{{ header.getValue() }}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
             <div ng-if="route.hasStatusCodes()">
                 <h3>Status codes</h3>

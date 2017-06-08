@@ -1,10 +1,14 @@
-app.service('routeFactory', ['requestFactory','tagFactory','paramFactory','statusFactory',function (requestFactory, tagFactory,paramFactory,statusFactory) {
+app.service('routeFactory', ['requestFactory','responseFactory','tagFactory','paramFactory','statusFactory',function (requestFactory, responseFactory, tagFactory,paramFactory,statusFactory) {
 
     this.buildRouteFromJson = function (routesJSON, category) {
         var route = new Route();
         route.setName(routesJSON.name);
         route.setDescription(routesJSON.description);
         route.setRequest(requestFactory.buildRequestFromJson(routesJSON.request));
+        if(routesJSON.response){
+            route.setHasResponse(true);
+            route.setResponse(responseFactory.buildFromRequestResponse(routesJSON.response));
+        }
         route.setId(routesJSON.id);
         if(routesJSON.tags){
             route.setHasTagList(true);
