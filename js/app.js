@@ -2,7 +2,7 @@
 var app = angular.module("multidoc", ['ui.router','jsonFormatter','LocalStorageModule','ui.bootstrap']);
 
 app.config(function($stateProvider, $urlRouterProvider,$qProvider) {
-      $qProvider.errorOnUnhandledRejections(false);
+      //$qProvider.errorOnUnhandledRejections(false);
       $stateProvider
 		.state('projectDetails', {
             url: '/project',

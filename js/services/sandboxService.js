@@ -1,4 +1,4 @@
-app.service('sandboxService',['$q','$http','transformRequestAsFormPost','responseFactory',
+app.service('sandboxService',['$q','$http','transformRequestAsFormPost','GUIResponseFactory',
     function ($q,$http,transformRequestAsFormPost,responseFactory) {
 
     /**
@@ -131,7 +131,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
             }).then(function mySucces(response, status, headers) {
                 defer.resolve(responseFactory.buildFromRequestResponse(response));
             }, function myError(response) {
-                defer.reject(response);
+                defer.reject(responseFactory.buildFromRequestResponse(response));
             });
         } else {
             if(method === "POST"){
@@ -160,7 +160,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
                 http.then(function mySucces(response, status, headers) {
                     defer.resolve(responseFactory.buildFromRequestResponse(response));
                 }, function myError(response) {
-                    defer.reject(response);
+                    defer.reject(responseFactory.buildFromRequestResponse(response));
                 });
             } else {
                 headers = this.overrideHeadersFromRoute(headers, route);
@@ -171,7 +171,7 @@ app.service('sandboxService',['$q','$http','transformRequestAsFormPost','respons
                 }).then(function mySucces(response, status, headers) {
                     defer.resolve(responseFactory.buildFromRequestResponse(response));
                 }, function myError(response) {
-                    defer.reject(response);
+                    defer.reject(responseFactory.buildFromRequestResponse(response));
                 });
             }
         }

@@ -83,3 +83,6 @@ a > .label {
 .response-text{
 	white-space: pre;
 }
+.description-text{
+	padding: 15px;
+}

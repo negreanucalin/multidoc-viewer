@@ -13,10 +13,10 @@
                 <p>{{route.getRequest().getUrl()}}</p>
             </blockquote>
             <h3>Description</h3>
-            <p class="bg-warning">{{route.getDescription()}}</p>
+            <p class="bg-warning description-text">{{route.getDescription()}}</p>
             <div ng-if="route.getRequest().hasUriParameterList()">
                 <h3>Route parameters</h3>
-                <table class="table table-condensed">
+                <table class="table table-condensed table-striped">
                     <tr>
                         <th>Name</th>
                         <th>Description</th>
@@ -35,7 +35,7 @@
             </div>
             <div ng-if="route.getRequest().hasPostParameterList()">
                 <h3>Post parameters</h3>
-                <table class="table table-condensed">
+                <table class="table table-condensed table-striped">
                     <tr>
                         <th>Name</th>
                         <th>Description</th>
@@ -69,7 +69,7 @@
             </div>
             <div ng-if="route.getRequest().hasHeaders()">
                 <h3>Request headers</h3>
-                <table class="table table-condensed">
+                <table class="table table-condensed table-striped">
                     <tr>
                         <th>Header</th>
                         <th>Value</th>
@@ -96,7 +96,7 @@
                 </div>
                 <div ng-if="route.getResponse().hasHeaders()">
                     <h4>Response headers</h4>
-                    <table class="table table-condensed">
+                    <table class="table table-condensed table-striped">
                         <tr>
                             <th>Header</th>
                             <th>Value</th>
@@ -110,7 +110,7 @@
             </div>
             <div ng-if="route.hasStatusCodes()">
                 <h3>Status codes</h3>
-                <table class="table table-condensed">
+                <table class="table table-condensed table-striped">
                     <tr>
                         <th>Status</th>
                         <th>Message</th>

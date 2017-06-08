@@ -1,7 +1,7 @@
 
 app.controller("RouteController", [
-    '$scope','localStorageService','projectService','visualHelper','routeService','sandboxService','routeControllerHelper','tagService','$stateParams','$rootScope','$state',
-    function ($scope,localStorageService,projectService,visualHelper,routeService,sandboxService,routeControllerHelper,tagService,$stateParams,$rootScope,$state) {
+    '$scope','environmentService','localStorageService','projectService','visualHelper','routeService','sandboxService','routeControllerHelper','tagService','$stateParams','$rootScope','$state',
+    function ($scope,environmentService,localStorageService,projectService,visualHelper,routeService,sandboxService,routeControllerHelper,tagService,$stateParams,$rootScope,$state) {
 
     $scope.files = [];
     $scope.sandboxFiles = [];
@@ -31,7 +31,6 @@ app.controller("RouteController", [
 
     projectService.getProject().then(function(project) {
         $scope.environment = environmentService.getEnvironment(project);
-        $scope.resetSandbox();
     });
 
     if(localStorageService.get('authorization')){
@@ -98,9 +97,15 @@ app.controller("RouteController", [
     $scope.runSandbox = function(route, postParamList) {
         try{
             $scope.validateAuthorization(route);
-            sandboxService.callRoute(route, postParamList, $scope.sandboxFiles, $scope.authorization).then(function(reponse){
-                $scope.sandboxOutput = reponse;
-            });
+            sandboxService.callRoute(route, postParamList, $scope.sandboxFiles, $scope.authorization).then(
+                function(reponse){
+                    $scope.sandboxOutput = reponse;
+                },
+                function (errorResponse){
+                    console.log('errorResponse',errorResponse);
+                    $scope.sandboxOutput = errorResponse;
+                }
+            );
         } catch(error) {
             alert(error);
         }
