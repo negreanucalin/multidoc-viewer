@@ -10,6 +10,16 @@ var GUICategory = function() {
     this.parentIdList = [];
     this.needs_authentication = false;
     this.has_route_list=false;
+    this.total_routes_found = 0;
+
+    this.setTotalResults = function(total){
+        this.total_routes_found = total;
+        return this;
+    };
+
+    this.getTotalResults = function(){
+        return this.total_routes_found ;
+    };
 
     this.setId = function(id){
         this.id = id;

@@ -13,7 +13,7 @@
                 <p>{{route.getRequest().getUrl()}}</p>
             </blockquote>
             <h3>Description</h3>
-            <p class="bg-warning description-text">{{route.getDescription()}}</p>
+            <p class="bg-warning description-text lead">{{route.getDescription()}}</p>
             <div ng-if="route.getRequest().hasUriParameterList()">
                 <h3>Route parameters</h3>
                 <table class="table table-condensed table-striped">
@@ -126,7 +126,7 @@
             <div ng-if="route.hasTagList()" class="">
                 <h3 class="">Tags</h3>
                 <div class="">
-                    <span ng-repeat="tag in route.getTagList()" class="label label-default right-5 hand-cursor" ng-click="addTag(tag)">
+                    <span ng-repeat="tag in route.getTagList()" class="label label-default right-5 hand-cursor search-label" ng-click="addTag(tag)">
                         {{tag.getName()}}
                     </span>
                 </div>
@@ -134,7 +134,7 @@
         </div>
     </div>
     <div class="col-md-6 right-content">
-        <h2>Sandbox URL</h2>
+        <h3>Sandbox Url</h3>
         <blockquote>
             <p ng-bind-html="sandboxRoute.getRequest().getUrl() | trust"></p>
         </blockquote>
@@ -200,14 +200,14 @@
 
         <div class="panel panel-primary top-20">
             <div class="panel-heading">
-                <h3 class="panel-title panel-primary">Output Response</h3>
+                <h3 class="panel-title panel-primary">Response</h3>
             </div>
-            <h3 ng-if="sandboxOutput.getStatusCode() != null">Status: {{sandboxOutput.getStatusCode()}}</h3>
+            <h3 ng-if="sandboxOutput.getStatusCode() != null">HTTP code: {{sandboxOutput.getStatusCode()}}</h3>
             <json-formatter class="panel-body sandbox_output_example" json=sandboxOutput.getData() open="1"></json-formatter>
         </div>
         <div class="panel panel-primary top-20">
             <div class="panel-heading">
-                <h3 class="panel-title panel-primary">Output Headers</h3>
+                <h3 class="panel-title panel-primary">Response Headers</h3>
             </div>
             <json-formatter class="panel-body sandbox_output_example" json=sandboxOutput.getResponseHeaders() open="1"></json-formatter>
         </div>

@@ -35,11 +35,9 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
     }
     if($state.is('tagSearch')){
         $scope.isSearchResult = true;
-        $scope.selectedMenu = 'project_details';
         categoryService.getGUICategoryListByTagList($scope.tagList).then(
             function(categoryList) {
                 $scope.categoryList = categoryList;
-
             }
         );
     }

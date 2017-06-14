@@ -111,7 +111,6 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
     };
 
     this.filterRoutesByTags = function(categoryList, tagList){
-
         for(var i=0; i<categoryList.length; i++) {
             if(categoryList[i].hasRouteList()){
                 var routeLength = categoryList[i].getRouteList().length;
@@ -124,11 +123,26 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
                 routeList = routeList.filter(function(n){ return n !== null });
                 categoryList[i].setHasRouteList(true);
                 categoryList[i].setRouteList(routeList);
+                categoryList[i].setTotalResults(routeList.length);
             }
             if(categoryList[i].hasCategoryList()){
                 this.filterRoutesByTags(categoryList[i].getCategoryList(),tagList);
             }
         }
+    };
+
+    /**
+     * Decides if a node should be visible
+     * @param {GUICategory} category
+     */
+    this.removeEmptyNodes = function(category){
+        var total = category.getTotalResults();
+        for(var i=0; i<category.getCategoryListCount(); i++) {
+            var subCat = category.getCategory(i);
+            category.setTotalResults(category.getTotalResults()+this.removeEmptyNodes(subCat));
+            total += subCat.getTotalResults();
+        }
+        return total;
     };
 
     this.getGUICategoryListByTagList = function (tagList, parentIdList) {
@@ -139,11 +153,16 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
         }).then(function mySucces(response) {
             var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList,[]);
             self.filterRoutesByTags(categoryList,tagList);
-            if(parentIdList){
-                self.markVisibleForNavigation(categoryList, parentIdList);
-            }
             self.markVisibleForSearch(categoryList);
+            var cat = new GUICategory();
+            cat.setName('Search results');
+            cat.setHasCategoryList(true);
+            cat.setIsVisible(true);
+            cat.setCategoryList(categoryList);
+            self.removeEmptyNodes(cat);
+            console.log('cat', cat);
             defer.resolve(categoryList);
+            //defer.resolve(categoryList);
         }, function myError(response) {
             defer.reject(response);
         });

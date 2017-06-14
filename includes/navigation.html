@@ -8,7 +8,7 @@
         </li>
         {{parentList = []; ""}}
         <li role="presentation" ng-if="!isSearchResult" ng-repeat="category in categoryList;" ng-include="'categoryTree'"></li>
-        <li role="presentation" ng-if="isSearchResult" ng-repeat="category in categoryList;" ng-include="'categoryTree'"></li>
+        <li role="presentation" ng-if="isSearchResult" ng-repeat="category in categoryList;" ng-include="'searchCategoryTree'"></li>
     </ul>
 </div>
 
@@ -39,6 +39,35 @@
         </ul>
         <ul class="navigation-margin nav nav-pills nav-stacked" ng-if="category.hasCategoryList()">
             <li role="presentation" ng-repeat="category in category.getCategoryList()" ng-include="'categoryTree'"></li>
+        </ul>
+    </div>
+</script>
+<script type="text/ng-template" id="searchCategoryTree">
+    <div ng-if="category.isVisible() && category.getTotalResults()>0">
+        <hr>
+        <ul class="navigation-margin nav nav-pills nav-stacked">
+            <li role="presentation">
+                <a ng-click="toggleVisibility(category)">
+                    <div class="hand-cursor">
+                        <span class="glyphicon glyphicon-folder-open">&nbsp;</span>
+                        {{ category.getName() }}
+                    </div>
+                </a>
+            </li>
+        </ul>
+        <ul class="navigation-margin nav nav-pills nav-stacked" ng-if="category.hasRouteList()">
+            <li role="presentation"
+                ng-repeat="route in category.getRouteList()"
+                ng-class="{'active': selectedMenu == route.getId()}">
+                <a ui-sref="tagSearchRouteDetails({routeId:route.getId(),parents:category.getParentIdList().join('$')})">
+                    <p ng-class="'label label-'+visualHelper.getMethodColorByRoute(route)" > {{route.getRequest().getMethod()}}</p>
+                    {{route.getName()}}
+                    <span ng-if="route.getRequest().needsAuthentication()" class="glyphicon glyphicon-exclamation-sign"></span>
+                </a>
+            </li>
+        </ul>
+        <ul class="navigation-margin nav nav-pills nav-stacked" ng-if="category.hasCategoryList()">
+            <li role="presentation" ng-repeat="category in category.getCategoryList()" ng-include="'searchCategoryTree'"></li>
         </ul>
     </div>
 </script>
