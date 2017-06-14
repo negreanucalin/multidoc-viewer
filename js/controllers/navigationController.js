@@ -59,7 +59,16 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
     });
 
     $scope.$on('runTagSearch',function(){
-        $state.go('tagSearch');
+        if($state.is('tagSearch')){//User might be already on search page
+            $scope.isSearchResult = true;
+            categoryService.getGUICategoryListByTagList($scope.tagList).then(
+                function(categoryList) {
+                    $scope.searchResultTree = categoryList;
+                }
+            );
+        } else {
+            $state.go('tagSearch');
+        }
     });
 
     $scope.$on('goToProjectDetails',function(){

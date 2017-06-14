@@ -166,7 +166,6 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
             cat.setIsVisible(true);
             cat.setCategoryList(categoryList);
             self.removeEmptyNodes(cat);
-            console.log('cat',cat);
             defer.resolve(cat);
         }, function myError(response) {
             defer.reject(response);
