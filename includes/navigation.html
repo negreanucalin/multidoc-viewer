@@ -6,9 +6,9 @@
                 Project Overview
             </a>
         </li>
-        {{parentList = []; ""}}
         <li role="presentation" ng-if="!isSearchResult" ng-repeat="category in categoryList;" ng-include="'categoryTree'"></li>
-        <li role="presentation" ng-if="isSearchResult" ng-repeat="category in categoryList;" ng-include="'searchCategoryTree'"></li>
+        <li role="presentation" ng-if="isSearchResult && searchResultTree.getTotalResults()>0" ng-repeat="category in searchResultTree.getCategoryList();" ng-include="'searchCategoryTree'"></li>
+        <li role="presentation" ng-if="isSearchResult && searchResultTree.getTotalResults()==0">No search results</li>
     </ul>
 </div>
 

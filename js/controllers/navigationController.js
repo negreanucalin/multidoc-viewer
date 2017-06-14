@@ -4,6 +4,7 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
 
     $scope.visualHelper = visualHelper;
     $scope.categoryList = [];
+    $scope.searchResultTree = [];
     $scope.selectedMenu = "";
     $scope.tagList = tagService.getTagList();
     $scope.isSearchResult = false;
@@ -37,7 +38,7 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
         $scope.isSearchResult = true;
         categoryService.getGUICategoryListByTagList($scope.tagList).then(
             function(categoryList) {
-                $scope.categoryList = categoryList;
+                $scope.searchResultTree = categoryList;
             }
         );
     }
@@ -46,7 +47,7 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
         var activeParentList = $scope.getParentListFromState();
         categoryService.getGUICategoryListByTagList($scope.tagList,activeParentList).then(
             function(categoryList) {
-                $scope.categoryList = categoryList;
+                $scope.searchResultTree = categoryList;
 
             }
         );

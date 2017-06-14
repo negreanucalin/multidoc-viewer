@@ -196,6 +196,7 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
 
     $scope.visualHelper = visualHelper;
     $scope.categoryList = [];
+    $scope.searchResultTree = [];
     $scope.selectedMenu = "";
     $scope.tagList = tagService.getTagList();
     $scope.isSearchResult = false;
@@ -229,7 +230,7 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
         $scope.isSearchResult = true;
         categoryService.getGUICategoryListByTagList($scope.tagList).then(
             function(categoryList) {
-                $scope.categoryList = categoryList;
+                $scope.searchResultTree = categoryList;
             }
         );
     }
@@ -238,7 +239,7 @@ app.controller("NavigationController", ['$scope','categoryService','visualHelper
         var activeParentList = $scope.getParentListFromState();
         categoryService.getGUICategoryListByTagList($scope.tagList,activeParentList).then(
             function(categoryList) {
-                $scope.categoryList = categoryList;
+                $scope.searchResultTree = categoryList;
 
             }
         );
@@ -777,150 +778,6 @@ app.service('tagFactory', function () {
     };
 
 });
-
-app.service('routeControllerHelper', function () {
-
-    /**
-     *
-     * @param {Param[]} list
-     */
-    this.convertUriParameterList = function (list) {
-        var paramList = [];
-        for(var i=0; i<list.length;i++){
-            paramList.push({
-                "name":list[i].getName(),
-                "value":list[i].getExampleData(),
-                "required":!list[i].isOptional(),
-                "enabled":true,
-                "has_default":list[i].hasDefaultValue(),
-                "default":list[i].getDefaultValue(),
-                "hasListValues":list[i].hasPossibleValues(),
-                "listValues":list[i].getPossibleValues()
-            });
-        }
-        return paramList;
-    };
-
-    /**
-     *
-     * @param {Param[]} list
-     */
-    this.convertPostParameterList = function (list) {
-        var paramList = [];
-        for(var i=0; i<list.length;i++){
-            paramList.push({
-                "name":list[i].getName(),
-                "value":list[i].getExampleData(),
-                "required":!list[i].isOptional(),
-                "enabled":true,
-                "has_default":list[i].hasDefaultValue(),
-                "default":list[i].getDefaultValue(),
-                "hasListValues":list[i].hasPossibleValues(),
-                "listValues":list[i].getPossibleValues(),
-                //Json type param
-                "isJson":list[i].isJsonParam(),
-                "isFile":list[i].isFile(),
-                "hasName":list[i].hasName()
-            });
-        }
-        return paramList;
-    };
-
-
-
-
-
-});
-
-
-app.factory(
-    "transformRequestAsFormPost",
-    function() {
-        function transformRequest( data, getHeaders ) {
-            var headers = getHeaders();
-            headers[ "Content-type" ] = "application/x-www-form-urlencoded; charset=utf-8";
-            return( serializeData( data ) );
-        }
-        return( transformRequest );
-
-        function serializeData( data ) {
-            // If this is not an object, defer to native stringification.
-            if ( ! angular.isObject( data ) ) {
-                return( ( data == null ) ? "" : data.toString() );
-            }
-            var buffer = [];
-            // Serialize each key in the object.
-            for ( var name in data ) {
-                if ( ! data.hasOwnProperty( name ) ) {
-                    continue;
-                }
-                var value = data[ name ];
-                buffer.push(
-                    encodeURIComponent( name ) +
-                    "=" +
-                    encodeURIComponent( ( value == null ) ? "" : value )
-                );
-            }
-            // Serialize the buffer and clean it up for transportation.
-            var source = buffer
-                .join( "&" )
-                .replace( /%20/g, "+" )
-                ;
-            return( source );
-        }
-    }
-);
-app.value(
-    "$sanitize",
-    function( html ) {
-        return( html );
-    }
-);
-
-app.service('visualHelper', function () {
-
-    this.getMethodColorByRoute = function (route) {
-        if( route instanceof Route || route instanceof GUIRoute) {
-            switch(route.getRequest().getMethod()) {
-                case 'GET':
-                    return 'primary';
-                    break;
-                case 'PUT':
-                    return 'info';
-                    break;
-                case 'POST':
-                    return 'success';
-                    break;
-                case 'PATCH':
-                    return 'warning';
-                    break;
-                case 'DELETE':
-                    return 'danger';
-                    break;
-                default:
-                    return 'default';
-                    break;
-            }
-        }
-    };
-
-    /**
-     *
-     * @param {GUICategory} category
-     * @returns {boolean}
-     */
-    this.isAtLeastOneRouteVisible = function(category)
-    {
-        for(var i=0; i<category.getRouteList().length;i++){
-            if(category.getRoute(i).isVisible()){
-                return true;
-            }
-        }
-        return false;
-    }
-
-});
-
 
 var Category = function() {
 
@@ -1786,6 +1643,8 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
 
     this.filterRoutesByTags = function(categoryList, tagList){
         for(var i=0; i<categoryList.length; i++) {
+            //Display it
+            categoryList[i].setIsVisible(true);
             if(categoryList[i].hasRouteList()){
                 var routeLength = categoryList[i].getRouteList().length;
                 var routeList = categoryList[i].getRouteList();
@@ -1798,6 +1657,13 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
                 categoryList[i].setHasRouteList(true);
                 categoryList[i].setRouteList(routeList);
                 categoryList[i].setTotalResults(routeList.length);
+                //Display them
+                categoryList[i].setIsVisible(true);
+                if(routeList.length >0){
+                    for(var k=0; k<routeList.length; k++){
+                        routeList[k].setIsVisible(true);
+                    }
+                }
             }
             if(categoryList[i].hasCategoryList()){
                 this.filterRoutesByTags(categoryList[i].getCategoryList(),tagList);
@@ -1827,19 +1693,12 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
         }).then(function mySucces(response) {
             var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList,[]);
             self.filterRoutesByTags(categoryList,tagList);
-            // if(parentIdList){
-            //     self.markVisibleForNavigation(categoryList, parentIdList);
-            // }
-            self.markVisibleForSearch(categoryList);
             var cat = new GUICategory();
-            cat.setName('Search results');
-            cat.setHasCategoryList(true);
             cat.setIsVisible(true);
             cat.setCategoryList(categoryList);
             self.removeEmptyNodes(cat);
-            console.log('cat', cat);
-            defer.resolve(categoryList);
-            //defer.resolve(categoryList);
+            console.log('cat',cat);
+            defer.resolve(cat);
         }, function myError(response) {
             defer.reject(response);
         });
@@ -2154,6 +2013,150 @@ app.service('tagService',['$q','localStorageService', function ($q,localStorageS
         return list;
     };
 }]);
+
+app.service('routeControllerHelper', function () {
+
+    /**
+     *
+     * @param {Param[]} list
+     */
+    this.convertUriParameterList = function (list) {
+        var paramList = [];
+        for(var i=0; i<list.length;i++){
+            paramList.push({
+                "name":list[i].getName(),
+                "value":list[i].getExampleData(),
+                "required":!list[i].isOptional(),
+                "enabled":true,
+                "has_default":list[i].hasDefaultValue(),
+                "default":list[i].getDefaultValue(),
+                "hasListValues":list[i].hasPossibleValues(),
+                "listValues":list[i].getPossibleValues()
+            });
+        }
+        return paramList;
+    };
+
+    /**
+     *
+     * @param {Param[]} list
+     */
+    this.convertPostParameterList = function (list) {
+        var paramList = [];
+        for(var i=0; i<list.length;i++){
+            paramList.push({
+                "name":list[i].getName(),
+                "value":list[i].getExampleData(),
+                "required":!list[i].isOptional(),
+                "enabled":true,
+                "has_default":list[i].hasDefaultValue(),
+                "default":list[i].getDefaultValue(),
+                "hasListValues":list[i].hasPossibleValues(),
+                "listValues":list[i].getPossibleValues(),
+                //Json type param
+                "isJson":list[i].isJsonParam(),
+                "isFile":list[i].isFile(),
+                "hasName":list[i].hasName()
+            });
+        }
+        return paramList;
+    };
+
+
+
+
+
+});
+
+
+app.factory(
+    "transformRequestAsFormPost",
+    function() {
+        function transformRequest( data, getHeaders ) {
+            var headers = getHeaders();
+            headers[ "Content-type" ] = "application/x-www-form-urlencoded; charset=utf-8";
+            return( serializeData( data ) );
+        }
+        return( transformRequest );
+
+        function serializeData( data ) {
+            // If this is not an object, defer to native stringification.
+            if ( ! angular.isObject( data ) ) {
+                return( ( data == null ) ? "" : data.toString() );
+            }
+            var buffer = [];
+            // Serialize each key in the object.
+            for ( var name in data ) {
+                if ( ! data.hasOwnProperty( name ) ) {
+                    continue;
+                }
+                var value = data[ name ];
+                buffer.push(
+                    encodeURIComponent( name ) +
+                    "=" +
+                    encodeURIComponent( ( value == null ) ? "" : value )
+                );
+            }
+            // Serialize the buffer and clean it up for transportation.
+            var source = buffer
+                .join( "&" )
+                .replace( /%20/g, "+" )
+                ;
+            return( source );
+        }
+    }
+);
+app.value(
+    "$sanitize",
+    function( html ) {
+        return( html );
+    }
+);
+
+app.service('visualHelper', function () {
+
+    this.getMethodColorByRoute = function (route) {
+        if( route instanceof Route || route instanceof GUIRoute) {
+            switch(route.getRequest().getMethod()) {
+                case 'GET':
+                    return 'primary';
+                    break;
+                case 'PUT':
+                    return 'info';
+                    break;
+                case 'POST':
+                    return 'success';
+                    break;
+                case 'PATCH':
+                    return 'warning';
+                    break;
+                case 'DELETE':
+                    return 'danger';
+                    break;
+                default:
+                    return 'default';
+                    break;
+            }
+        }
+    };
+
+    /**
+     *
+     * @param {GUICategory} category
+     * @returns {boolean}
+     */
+    this.isAtLeastOneRouteVisible = function(category)
+    {
+        for(var i=0; i<category.getRouteList().length;i++){
+            if(category.getRoute(i).isVisible()){
+                return true;
+            }
+        }
+        return false;
+    }
+
+});
+
 
 app.service('GUIResponseFactory', function () {
 

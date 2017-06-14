@@ -112,6 +112,8 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
 
     this.filterRoutesByTags = function(categoryList, tagList){
         for(var i=0; i<categoryList.length; i++) {
+            //Display it
+            categoryList[i].setIsVisible(true);
             if(categoryList[i].hasRouteList()){
                 var routeLength = categoryList[i].getRouteList().length;
                 var routeList = categoryList[i].getRouteList();
@@ -124,6 +126,13 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
                 categoryList[i].setHasRouteList(true);
                 categoryList[i].setRouteList(routeList);
                 categoryList[i].setTotalResults(routeList.length);
+                //Display them
+                categoryList[i].setIsVisible(true);
+                if(routeList.length >0){
+                    for(var k=0; k<routeList.length; k++){
+                        routeList[k].setIsVisible(true);
+                    }
+                }
             }
             if(categoryList[i].hasCategoryList()){
                 this.filterRoutesByTags(categoryList[i].getCategoryList(),tagList);
@@ -153,16 +162,12 @@ app.service('categoryService',['$q','$http','categoryFactory', function ($q,$htt
         }).then(function mySucces(response) {
             var categoryList = categoryFactory.buildNavigationListFromJson(response.data.categoryList,[]);
             self.filterRoutesByTags(categoryList,tagList);
-            self.markVisibleForSearch(categoryList);
             var cat = new GUICategory();
-            cat.setName('Search results');
-            cat.setHasCategoryList(true);
             cat.setIsVisible(true);
             cat.setCategoryList(categoryList);
             self.removeEmptyNodes(cat);
-            console.log('cat', cat);
-            defer.resolve(categoryList);
-            //defer.resolve(categoryList);
+            console.log('cat',cat);
+            defer.resolve(cat);
         }, function myError(response) {
             defer.reject(response);
         });
