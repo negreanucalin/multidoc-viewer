@@ -1,0 +1,64 @@
+$columns: 100;
+
+@mixin col-x-list {
+    @for $i from 1 through $columns {
+        .has-text-#{$i} { font-size:#{$i}px; }
+    }
+}
+
+@mixin left {
+    @for $i from 1 through $columns {
+        .left-#{$i} { margin-left:#{$i}px !important; }
+    }
+}
+
+@mixin right {
+    @for $i from 1 through $columns {
+        .right-#{$i} { margin-right:#{$i}px !important; }
+    }
+}
+
+@mixin top {
+    @for $i from 1 through $columns {
+        .top-#{$i} { margin-top:#{$i}px !important; }
+    }
+}
+
+@mixin bottom {
+    @for $i from 1 through $columns {
+        .bottom-#{$i} { margin-bottom:#{$i}px !important; }
+    }
+}
+
+@mixin margin {
+    @for $i from 1 through $columns {
+        .margin-#{$i} { margin:#{$i}px !important; }
+    }
+}
+
+@mixin padding {
+    @for $i from 1 through $columns {
+        .padding-#{$i} { padding:#{$i}px !important; }
+    }
+}
+
+@mixin margin-left-right {
+    @for $i from 1 through $columns {
+        .margin-left-right-#{$i} { margin-left:#{$i}px !important; margin-right:#{$i}px !important;}
+    }
+}
+@mixin font-size {
+    @for $i from 1 through $columns {
+        .font-size-#{$i} { font-size:#{$i}px !important;}
+    }
+}
+
+@include col-x-list;
+@include left;
+@include right;
+@include bottom;
+@include top;
+@include margin;
+@include padding;
+@include margin-left-right;
+@include font-size;

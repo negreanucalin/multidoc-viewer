@@ -1,0 +1,32 @@
+// Variables
+@import 'variables';
+@import 'mixins';
+
+.mx-panel-date > thead> tr> th,
+.mx-panel-date > tbody > tr > td {
+    text-align: -webkit-match-parent;
+}
+.left-20-percent {
+    margin-left: 20%;
+}
+.left-40-percent {
+    margin-left: 40%;
+}
+.has-cursor-default {
+    cursor: default !important
+}
+.has-cursor-pointer {
+    cursor: pointer !important
+}
+.padding-4 {
+    padding-top: 4px !important;
+}
+.icon-space-right {
+     margin-right:5px;
+}
+.icon-space-left {
+    margin-left:5px;
+}
+.no-padding-right {
+    padding-right: 0 ;
+}

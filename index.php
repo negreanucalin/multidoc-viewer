@@ -1,35 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Multidoc</title>
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-      <!-- inject:js -->
-      <script src="dist/scripts/vendor.min.js?v=1497432501"></script>
-      <script src="dist/scripts/scripts.min.js?v=1497432501"></script>
-      <!-- endinject -->
-      <!-- inject:css -->
-	  <link rel="stylesheet" href="dist/styles/styles.min.css?v=1497432501">
-	  <!-- endinject -->
-  </head>
-  
-  <body ng-app="multidoc">
-	  <div class ="container-fluid">
-		<nav class="navbar navbar-inverse navbar-fixed-top">
-			<div ui-view="header"></div>
-		</nav>
-
-		<div class="top-60">
-			<div ui-view="navigation"></div>
-			<div ui-view="content"></div>
-		</div>
-	  </div>
-	  <div ui-view="footer"></div>
-
-  </body>
+    <link rel="stylesheet" href="public/css/app.css">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <v-app>
+        <div class="columns">
+            <div class="column">
+                <router-view name="header"></router-view>
+            </div>
+        </div>
+        <div class="columns">
+            <main class="column">
+                <section>
+                    <router-view name="content"></router-view>
+                </section>
+            </main>
+        </div>
+    </v-app>
+</div>
+</body>
+<script src="public/js/app.js"></script>
 </html>
