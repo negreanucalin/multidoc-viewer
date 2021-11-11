@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-app-bar app color="indigo" dark dense v-if="project">
-            <v-toolbar-title>{{project.name}}</v-toolbar-title>
+            <v-toolbar-title>{{project.name}} v{{project.version}}</v-toolbar-title>
         </v-app-bar>
     </div>
 </template>
