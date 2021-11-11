@@ -1,18 +1,18 @@
 <template>
     <div>
         <div v-if="route">
-            <route-description-component :route="computedRoute"></route-description-component>
-            <div v-if="computedRoute.request.uriParams.length">
+            <route-description-component :route="route"></route-description-component>
+            <div v-if="route.request.uriParams.length">
                 <h4>Url params</h4>
-                <parameter-table :parameters="computedRoute.request.uriParams"></parameter-table>
+                <parameter-table :parameters="route.request.uriParams"></parameter-table>
             </div>
-            <div v-if="computedRoute.request.postParams.length">
+            <div v-if="route.request.postParams.length">
                 <h4>Request params</h4>
-                <parameter-table :parameters="computedRoute.request.postParams"></parameter-table>
+                <parameter-table :parameters="route.request.postParams"></parameter-table>
             </div>
             <div>
-                <h4 v-if="computedRoute.tags.length">Tags</h4>
-                <span v-for="tag in computedRoute.tags" >
+                <h4 v-if="route.tags.length">Tags</h4>
+                <span v-for="tag in route.tags" >
                     <v-chip class="ma-2">{{tag}}</v-chip>
                 </span>
             </div>
@@ -29,12 +29,7 @@
 
         },
         computed: {
-            computedRoute: function () {
-                let newRoute = _.clone(this.route);
-                newRoute.request.uriParams = _.filter(newRoute.request.params, function(parameter) { return parameter.type ==='uri'; });
-                newRoute.request.postParams = _.filter(newRoute.request.params, function(parameter) { return parameter.type ==='post'; });
-                return newRoute;
-            }
+
         },
         data() {
             return {

@@ -1,12 +1,14 @@
 <template>
     <div>
         <v-treeview
+                v-on:update:active="emitSelection"
                 v-model="tree"
                 :open="open"
                 :items="items"
                 activatable
                 item-key="id"
                 open-on-click
+                return-object
         >
             <template v-slot:prepend="{ item, open }">
                 <v-icon v-if="item.children && item.children.length > 0">
@@ -19,9 +21,6 @@
                 >
                      {{item.request.method}}
                 </v-chip>
-            </template>
-            <template slot="label" slot-scope="{ item }">
-                <span @click="selected(item)">{{ item.name }}</span>
             </template>
         </v-treeview>
     </div>
@@ -51,11 +50,11 @@
             };
         },
         methods: {
-            selected: function (item) {
+            emitSelection: function (item) {
                 if (item.hasOwnProperty('children')) {
-                    this.$emit('selected:category', item);
+                    this.$emit('selected:category', item[0]);
                 } else {
-                    this.$emit('selected:route', item);
+                    this.$emit('selected:route', item[0]);
                 }
             }
         }

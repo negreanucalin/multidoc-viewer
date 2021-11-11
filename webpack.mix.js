@@ -1,28 +1,19 @@
 const mix = require('laravel-mix');
-const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
-/*
- |--------------------------------------------------------------------------
- | Mix Asset Management
- |--------------------------------------------------------------------------
- |
- | Mix provides a clean, fluent API for defining some Webpack build steps
- | for your Laravel application. By default, we are compiling the Sass
- | file for the application as well as bundling up all the JS files.
- |
- */
+require('vuetifyjs-mix-extension');
+require('mix-html-builder');
 
-mix.js('resources/js/app.js', 'public/js').sass('resources/sass/app.scss', 'public/css');
-mix.webpackConfig(Object.assign({
-    plugins: [
-        new VuetifyLoaderPlugin({options: {}}),
-    ]
-}));
+mix.js('resources/js/app.js', 'public/js').vuetify('vuetify-loader').vue()
+    .sass('resources/sass/app.scss', 'public/css');
+
 if (mix.inProduction()) {
     mix.version();
 }
-if ( ! mix.inProduction()) {
-    mix.webpackConfig({
-        devtool: 'inline-source-map'
-    });
-    mix.sourceMaps();
-}
+
+mix.html({
+    htmlRoot: './resources/index.html', // Your html root file(s)
+    output: '/', // The html output folder
+    inject:true,
+    minify: {
+        removeComments: true
+    }
+});
