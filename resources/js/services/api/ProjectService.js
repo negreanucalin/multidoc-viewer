@@ -5,7 +5,7 @@ export default {
     get() {
         return new Promise(function (resolve, reject) {
             request
-                .get('/api_data/project.json')
+                .get('/vendor/multidoc/api_data/project.json')
                 .then(response => {
                         resolve(response.data);
                     }
@@ -17,7 +17,7 @@ export default {
     getRoutes() {
         return new Promise(function (resolve, reject) {
             request
-                .get('/api_data/categories.json')
+                .get('/vendor/multidoc/api_data/categories.json')
                 .then(response => {
                         resolve(response.data.children);
                     }

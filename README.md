@@ -5,6 +5,10 @@
 #### Check out [Multidoc parser](https://github.com/negreanucalin/multidoc-parser)
 #### Did you say [Laravel?](https://github.com/negreanucalin/multidoc-laravel)
 
+### Documentation path
+
+`ROOT/vendor/multidoc/api_data` - both categories.json and project.json files
+
 ### Known issues
 
 
