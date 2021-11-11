@@ -10,7 +10,7 @@ if (mix.inProduction()) {
 }
 
 mix.html({
-    htmlRoot: './resources/index.html', // Your html root file(s)
+    htmlRoot: './resources/index.php', // Your html root file(s)
     output: '/', // The html output folder
     inject:true,
     minify: {

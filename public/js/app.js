@@ -23151,7 +23151,7 @@ var render = function () {
                 [
                   _c(
                     "v-flex",
-                    { attrs: { md3: "" } },
+                    { attrs: { md3: "", "pl-2": "", "pr-2": "" } },
                     [
                       _c("environment-component"),
                       _vm._v(" "),
@@ -23164,7 +23164,7 @@ var render = function () {
                   _vm._v(" "),
                   _c(
                     "v-flex",
-                    { attrs: { md4: "" } },
+                    { attrs: { md4: "", "pl-2": "", "pr-2": "" } },
                     [
                       _c("route-component", {
                         attrs: { route: _vm.computedRoute },
@@ -23175,7 +23175,7 @@ var render = function () {
                   _vm._v(" "),
                   _c(
                     "v-flex",
-                    { attrs: { md5: "" } },
+                    { attrs: { md5: "", "pl-2": "", "pr-2": "" } },
                     [
                       _c("sandbox-component", {
                         attrs: { route: _vm.computedRoute },
@@ -23226,7 +23226,13 @@ var render = function () {
         ? _c(
             "v-app-bar",
             { attrs: { app: "", color: "indigo", dark: "", dense: "" } },
-            [_c("v-toolbar-title", [_vm._v(_vm._s(_vm.project.name))])],
+            [
+              _c("v-toolbar-title", [
+                _vm._v(
+                  _vm._s(_vm.project.name) + " v" + _vm._s(_vm.project.version)
+                ),
+              ]),
+            ],
             1
           )
         : _vm._e(),
