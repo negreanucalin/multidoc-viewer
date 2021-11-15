@@ -32,11 +32,12 @@
             route: null
         },
         mounted() {
-            this.clonedRoute = _.cloneDeep(this.route);
+
         },
         computed: {
             computedRoute: function() {
-                if (this.clonedRoute) {
+                if (this.route) {
+                    this.clonedRoute = _.cloneDeep(this.route);
                     this.clonedRoute.request.url = SandboxService.parseUrl(
                         this.clonedRoute.request.url,
                         this.clonedRoute.request.uriParams
@@ -53,12 +54,12 @@
         methods: {
 
         },
-        watch : {
-            route(to, from) {
-                if (to) {
-                    this.clonedRoute = _.cloneDeep(to);
-                }
-            }
-        }
+        // watch : {
+        //     route(to, from) {
+        //         if (to) {
+        //             this.clonedRoute = _.cloneDeep(to);
+        //         }
+        //     }
+        // }
     }
 </script>

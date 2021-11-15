@@ -4,6 +4,9 @@ let urlParsing = {
 
     methods: {
         parseEnvironment(url) {
+            if (!this.environment.trim().length) {
+                return url;
+            }
             let environment = this.getEnvironmentByName(this.environment);
             return url.replace("{{environment}}", environment.url);
         }

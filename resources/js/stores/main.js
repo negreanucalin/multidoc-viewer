@@ -6,15 +6,13 @@ Vue.use(Vuex);
 
 export const main = new Vuex.Store({
     actions: {
-        loadProject() {
-            ProjectService.get().then(response => {
-                main.commit('SET_PROJECT', response);
-            });
+        async loadProject() {
+            let response = await ProjectService.get();
+            main.commit('SET_PROJECT', response);
         },
-        loadRoutes() {
-            ProjectService.getRoutes().then(response => {
-                main.commit('SET_ROUTES', response);
-            });
+        async loadRoutes() {
+            let response = await ProjectService.getRoutes();
+            main.commit('SET_ROUTES', response);
         },
         setEnvironment({ commit }, name) {
             main.commit('SET_ENVIRONMENT', name);

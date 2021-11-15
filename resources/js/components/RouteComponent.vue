@@ -11,10 +11,12 @@
                 <parameter-table :parameters="route.request.postParams"></parameter-table>
             </div>
             <div>
-                <h4 v-if="route.tags.length">Tags</h4>
+              <template v-if="route.tags && route.tags.length">
+                <h4>Tags</h4>
                 <span v-for="tag in route.tags" >
                     <v-chip class="ma-2">{{tag}}</v-chip>
                 </span>
+              </template>
             </div>
         </div>
     </div>

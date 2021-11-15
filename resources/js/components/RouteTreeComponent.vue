@@ -28,6 +28,7 @@
 
 <script>
     import {methodColor} from "../mixins/methodColoringMixin";
+    import colorMap from "../config/colors";
 
     export default {
         mixins: [methodColor],
@@ -35,7 +36,6 @@
         mounted() {
             this.$store.watch((state) => state.routeList, (routes) => {
                 this.items = routes;
-                this.loaded = true;
             });
         },
         computed: {},
@@ -46,7 +46,7 @@
                 tree: [],
                 items: [],
                 open: [],
-                colorMap: {'GET': 'primary', 'POST': 'green', 'DELETE': 'red', 'PATCH': 'orange', 'OPTIONS': ''}
+                colorMap: colorMap
             };
         },
         methods: {

@@ -1,8 +1,10 @@
 <template>
     <div>
-        <v-chip class="ma-2" text-color="white" :color="getColorByMethod(route.request.method)">
+        <div class="mb-2">
+          <v-chip text-color="white" :color="getColorByMethod(route.request.method)">
             {{route.request.method}}
-        </v-chip> {{route.name}}
+          </v-chip> {{route.name}}
+        </div>
         <h3>Url</h3>
         <blockquote>
             <p>{{parseEnvironment(route.request.url)}}</p>

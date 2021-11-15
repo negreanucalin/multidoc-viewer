@@ -1,4 +1,3 @@
-require('es6-promise').polyfill();
 window._ = require('lodash');
 
 /**
