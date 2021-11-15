@@ -7,8 +7,11 @@ Vue.use(Vuex);
 export const main = new Vuex.Store({
     actions: {
         async loadProject() {
-            let response = await ProjectService.get();
-            main.commit('SET_PROJECT', response);
+            let project = await ProjectService.get();
+            main.commit('SET_PROJECT', project);
+            if (project.hasOwnProperty('environments')) {
+                main.commit('SET_ENVIRONMENT', project.environments[0].name);
+            }
         },
         async loadRoutes() {
             let response = await ProjectService.getRoutes();
@@ -35,11 +38,28 @@ export const main = new Vuex.Store({
         environment :''
     },
     getters: {
+        getEnvironment: state => () => {
+            return state.environment;
+        },
         getProject: state => () => {
             return state.project;
         },
         getRoutes: state => () => {
             return state.routeList;
+        },
+        getEnvironments: state => () => {
+            if (state.project.hasOwnProperty('environments') && state.project.environments.length) {
+                return state.project.environments;
+            }
+        },
+        getEnvironmentNames:state => () => {
+            if (state.project.hasOwnProperty('environments') && state.project.environments.length) {
+                let list = [];
+                state.project.environments.forEach((environment)=>{
+                    list.push(environment.name);
+                })
+                return list;
+            }
         },
         getEnvironmentByName: (state) => (name) => {
             return _.find(state.project.environments, (environment) => {

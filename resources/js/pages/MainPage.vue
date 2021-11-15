@@ -3,7 +3,7 @@
         <v-container class="fill-height" fluid>
             <v-layout row>
                 <v-flex md3 pl-2 pr-2>
-                    <environment-component v-if="hasEnvironments"></environment-component>
+                    <environment-component v-if="hasEnvironments" :environment="environment"></environment-component>
                     <route-tree-component v-on:selected:route="selectRoute"></route-tree-component>
                 </v-flex>
                 <v-flex md4 pl-2 pr-2>
@@ -29,6 +29,7 @@
         mounted() {},
         computed: {
             ...mapState(['project']),
+            ...mapState(['environment']),
             computedRoute: function () {
                 // If selected item is not a folder
                 if (this.selectedRoute && this.selectedRoute.hasOwnProperty('request')) {

@@ -1,6 +1,10 @@
 <template>
     <div v-if="computedRoute">
-        <route-description-component :route="computedRoute"></route-description-component>
+        <route-description-component :route="computedRoute" :isInSandbox="true"></route-description-component>
+        <div v-if="route.request.headers.length">
+          <h4>Headers</h4>
+          <headers-table :headers="route.request.headers"></headers-table>
+        </div>
         <div v-if="computedRoute.request.uriParams.length">
             <h4>Url params</h4>
             <div v-for="uriParameter in computedRoute.request.uriParams">
@@ -25,7 +29,7 @@
 </template>
 
 <script>
-    import SandboxService from "../services/SandboxService";
+    import SandboxService from "../../services/SandboxService";
 
     export default {
         props: {

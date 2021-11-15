@@ -1,27 +1,34 @@
 <template>
     <div>
-        <div class="mb-2">
+        <div class="mb-2" v-if="!isInSandbox">
           <v-chip text-color="white" :color="getColorByMethod(route.request.method)">
             {{route.request.method}}
           </v-chip> {{route.name}}
         </div>
-        <h3>Url</h3>
+        <h3>Endpoint</h3>
         <blockquote>
             <p>{{parseEnvironment(route.request.url)}}</p>
         </blockquote>
-        <h3>Description</h3>
-        <p>{{route.description}}</p>
+        <template v-if="!isInSandbox">
+          <h3>Description</h3>
+          <p>{{route.description}}</p>
+        </template>
     </div>
 </template>
 
 <script>
-    import {methodColor} from "../mixins/methodColoringMixin";
-    import {urlParsing} from "../mixins/urlParsing";
+    import {methodColor} from "../../mixins/methodColoringMixin";
+    import {urlParsing} from "../../mixins/urlParsing";
 
     export default {
         mixins: [methodColor, urlParsing],
         props: {
-            route: null
+            route: null,
+            isInSandbox:{
+              type: Boolean,
+              required: false,
+              default: false
+            }
         },
         mounted() {
 

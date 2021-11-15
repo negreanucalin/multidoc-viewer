@@ -2,6 +2,10 @@
     <div>
         <div v-if="route">
             <route-description-component :route="route"></route-description-component>
+            <div v-if="route.request.headers.length">
+              <h4>Headers</h4>
+              <headers-table :headers="route.request.headers"></headers-table>
+            </div>
             <div v-if="route.request.uriParams.length">
                 <h4>Url params</h4>
                 <parameter-table :parameters="route.request.uriParams"></parameter-table>

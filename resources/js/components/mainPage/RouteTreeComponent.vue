@@ -11,7 +11,7 @@
                 return-object
         >
             <template v-slot:prepend="{ item, open }">
-                <v-icon v-if="item.children && item.children.length > 0">
+                <v-icon v-if="item.children">
                     {{ open ? 'mdi-folder-open' : 'mdi-folder' }}
                 </v-icon>
                 <v-chip v-else
@@ -27,8 +27,8 @@
 </template>
 
 <script>
-    import {methodColor} from "../mixins/methodColoringMixin";
-    import colorMap from "../config/colors";
+    import {methodColor} from "../../mixins/methodColoringMixin";
+    import colorMap from "../../config/colors";
 
     export default {
         mixins: [methodColor],
