@@ -6,7 +6,7 @@
           <environment-component v-if="hasEnvironments" :environment="environment"></environment-component>
           <route-tree-component v-on:selected:route="selectRoute"></route-tree-component>
         </v-flex>
-        <v-flex md9 pl-2 pr-2 v-if="isSandbox">
+        <v-flex md9 pl-2 pr-2 v-if="!isSandbox">
           <route-component :route="computedRoute"></route-component>
         </v-flex>
         <v-flex md9 pl-2 pr-2 v-else>
@@ -19,12 +19,12 @@
               v-on:click="toggleSandbox"
               elevation="2"
               fab fixed bottom right dark
-              :color="isSandbox?'red':'green'"
+              :color="isSandbox?'green':'red'"
               v-bind="attrs"
               v-on="on"
           ><v-icon>mdi-pencil</v-icon></v-btn>
         </template>
-        <span>{{isSandbox?'Sandbox':'View mode'}}</span>
+        <span>{{isSandbox?'View mode':'Sandbox'}}</span>
       </v-tooltip>
     </v-container>
   </v-main>
