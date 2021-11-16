@@ -7,6 +7,7 @@
                 <th class="text-left">Description</th>
                 <th class="text-left">Type</th>
                 <th class="text-left">Optional</th>
+                <th class="text-left">Default</th>
                 <th class="text-left">Example</th>
             </tr>
             </thead>
@@ -15,6 +16,7 @@
                 <td>{{ item.name }}</td>
                 <td>{{ item.description }}</td>
                 <td>{{ item.type }}</td>
+                <td>{{ item.default ? item.default: 'N/A'}}</td>
                 <td>{{ item.isOptional ? 'yes': 'no'}}</td>
                 <td>{{ item.example}}</td>
             </tr>
