@@ -1,6 +1,6 @@
 <template>
     <div v-if="computedRoute">
-        <route-description-component :route="computedRoute" :isInSandbox="true"></route-description-component>
+        <route-description-component :route="computedRoute" ></route-description-component>
         <div v-if="route.request.headers.length">
           <h4>Headers</h4>
           <headers-table :headers="route.request.headers"></headers-table>
@@ -35,9 +35,7 @@
         props: {
             route: null
         },
-        mounted() {
-
-        },
+        mounted() {},
         computed: {
             computedRoute: function() {
                 if (this.route) {
@@ -55,15 +53,6 @@
                 clonedRoute:null
             };
         },
-        methods: {
-
-        },
-        // watch : {
-        //     route(to, from) {
-        //         if (to) {
-        //             this.clonedRoute = _.cloneDeep(to);
-        //         }
-        //     }
-        // }
+        methods: {}
     }
 </script>

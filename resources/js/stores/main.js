@@ -5,6 +5,12 @@ import ProjectService from "../services/api/ProjectService";
 Vue.use(Vuex);
 
 export const main = new Vuex.Store({
+    state: {
+        project: {},
+        routeList: [],
+        environment :'',
+        isSandbox: false
+    },
     actions: {
         async loadProject() {
             let project = await ProjectService.get();
@@ -20,6 +26,9 @@ export const main = new Vuex.Store({
         setEnvironment({ commit }, name) {
             main.commit('SET_ENVIRONMENT', name);
         },
+        toggleSandbox() {
+            main.commit('TOGGLE_SANDBOX');
+        }
     },
     mutations: {
         SET_PROJECT(state, project) {
@@ -31,13 +40,14 @@ export const main = new Vuex.Store({
         SET_ENVIRONMENT(state, environment) {
             state.environment = environment;
         },
-    },
-    state: {
-        project: {},
-        routeList: [],
-        environment :''
+        TOGGLE_SANDBOX(state, environment) {
+            state.isSandbox = !state.isSandbox;
+        },
     },
     getters: {
+        isSandbox: state => ()=>{
+            return state.isSandbox;
+        },
         getEnvironment: state => () => {
             return state.environment;
         },
