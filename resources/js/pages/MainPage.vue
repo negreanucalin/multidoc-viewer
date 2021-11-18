@@ -26,14 +26,26 @@
         </template>
         <span>{{isSandbox?'View mode':'Sandbox'}}</span>
       </v-tooltip>
+
+      <v-snackbar v-model="showTagSearch" :timeout=-1 color="white">
+          <v-row>
+            <v-col>
+              <tag-view-component :tags="tagsList" :hideTitle="true"></tag-view-component>
+              <v-btn outlined color="pink" class="float-right mt-2" @click="clearTagList">Clear</v-btn>
+            </v-col>
+          </v-row>
+      </v-snackbar>
+
     </v-container>
   </v-main>
 </template>
 
 <script>
 import {mapState} from "vuex";
+import TagViewComponent from "../components/routeComponent/TagViewComponent";
 
 export default {
+  components: {TagViewComponent},
   beforeCreate() {
     // When page loads set current route name
     this.$store.dispatch('loadProject');
@@ -42,7 +54,7 @@ export default {
   props: {},
   mounted() {},
   computed: {
-    ...mapState(['project', 'environment', 'isSandbox']),
+    ...mapState(['project', 'environment', 'isSandbox','tags']),
     computedRoute: function () {
       // If selected item is not a folder
       if (this.selectedRoute && this.selectedRoute.hasOwnProperty('request')) {
@@ -59,11 +71,15 @@ export default {
     },
     hasEnvironments: function () {
       return this.project.hasOwnProperty('environments') && this.project.environments.length > 0;
+    },
+    tagsList: function() {
+      return Array.from(this.tags);
     }
   },
   data() {
     return {
       selectedRoute: null,
+      showTagSearch: false
     };
   },
   methods: {
@@ -72,6 +88,14 @@ export default {
     },
     toggleSandbox: function () {
       this.$store.dispatch('toggleSandbox');
+    },
+    clearTagList: function() {
+      this.$store.dispatch('clearTagSearch');
+    }
+  },
+  watch: {
+    '$store.state.tags': function(to, from) {
+      this.showTagSearch = to.size > 0;
     }
   }
 }

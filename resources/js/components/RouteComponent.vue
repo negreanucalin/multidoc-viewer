@@ -15,12 +15,7 @@
                 <parameter-table :parameters="route.request.postParams"></parameter-table>
             </div>
             <div>
-              <template v-if="route.tags && route.tags.length">
-                <h4>Tags</h4>
-                <span v-for="tag in route.tags" >
-                    <v-chip class="ma-2">{{tag}}</v-chip>
-                </span>
-              </template>
+              <tag-view-component :tags="route.tags"/>
             </div>
         </div>
     </div>
@@ -28,7 +23,7 @@
 
 <script>
     export default {
-        props: {
+      props: {
             route: null
         },
         mounted() {

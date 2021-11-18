@@ -31,7 +31,7 @@
 </template>
 
 <script>
-    import SandboxService from "../../services/SandboxService";
+    import SandboxService from "../services/sandboxService";
 
     export default {
         props: {

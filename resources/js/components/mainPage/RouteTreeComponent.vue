@@ -34,7 +34,7 @@
         mixins: [methodColor],
         props: {},
         mounted() {
-            this.$store.watch((state) => state.routeList, (routes) => {
+            this.$store.watch((state) => state.filteredRouteList, (routes) => {
                 this.items = routes;
             });
         },
