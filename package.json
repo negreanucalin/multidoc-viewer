@@ -1,6 +1,6 @@
 {
   "name": "multidoc",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "description": "Api generation tool",
   "main": "index.html",
   "scripts": {
