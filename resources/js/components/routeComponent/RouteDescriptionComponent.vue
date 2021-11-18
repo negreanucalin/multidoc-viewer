@@ -5,7 +5,7 @@
             {{route.request.method}}
           </v-chip> {{route.name}}
         </div>
-        <h3>Endpoint</h3>
+        <h3><route-secured-icon v-if="route.request.isSecured"/>Endpoint</h3>
         <blockquote>
             <p>{{parseEnvironment(route.request.url)}}</p>
         </blockquote>
@@ -17,11 +17,11 @@
 </template>
 
 <script>
-    import {methodColor} from "../mixins/methodColoringMixin";
-    import {urlParsing} from "../mixins/urlParsing";
+    import {methodColor} from "../../mixins/methodColoringMixin";
+    import {urlParsing} from "../../mixins/urlParsing";
 
     export default {
-        mixins: [methodColor, urlParsing],
+      mixins: [methodColor, urlParsing],
         props: {
             route: null
         },
