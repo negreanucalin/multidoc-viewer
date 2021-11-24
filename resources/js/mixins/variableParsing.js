@@ -34,6 +34,9 @@ let variableParsing = {
         },
         getParametersByType(routes, method)
         {
+            if (!routes || !Array.isArray(routes)) {
+                return [];
+            }
             let routeList = [];
             routes.forEach((route)=>{
                 if (route.type === method)

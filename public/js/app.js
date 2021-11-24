@@ -3134,6 +3134,10 @@ var variableParsing = {
       return url;
     },
     getParametersByType: function getParametersByType(routes, method) {
+      if (!routes || !Array.isArray(routes)) {
+        return [];
+      }
+
       var routeList = [];
       routes.forEach(function (route) {
         if (route.type === method) routeList.push(route);
