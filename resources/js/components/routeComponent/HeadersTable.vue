@@ -10,7 +10,7 @@
       <tbody>
       <tr v-for="header in headers" :key="header.name">
         <td>{{ header.name }}</td>
-        <td>{{ header.value }}</td>
+        <td>{{header.value}}</td>
       </tr>
       </tbody>
     </template>

@@ -7,4 +7,4 @@ let options = {
         'X-Requested-With' : 'XMLHttpRequest'
     }
 };
-export default  axios.create(options);
+export default axios.create(options);

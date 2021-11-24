@@ -1,50 +1,58 @@
 <template>
   <v-main>
-    <v-container class="fill-height" fluid>
+    <v-container v-if="!isLoading" class="fill-height" fluid>
       <v-layout row>
         <v-flex md3 pl-2 pr-2>
-          <environment-component v-if="hasEnvironments" :environment="environment"></environment-component>
+          <template v-if="hasVariables">
+            <v-btn v-on:click="toggleShowVariables" outlined color="pink" class="mb-2">Variables</v-btn>
+            <variables-component v-if="isVariablesShow" v-on:update-variables="formatRoute"></variables-component>
+          </template>
           <route-tree-component v-on:selected:route="selectRoute"></route-tree-component>
         </v-flex>
         <v-flex md9 pl-2 pr-2 v-if="!isSandbox">
           <route-component :route="computedRoute"></route-component>
         </v-flex>
         <v-flex md9 pl-2 pr-2 v-else>
-          <sandbox-component :route="computedRoute"></sandbox-component>
+          <sandbox-component :route="computedRoute" :call-api="isApiCallRequested" v-on:request-done="requestDone"></sandbox-component>
         </v-flex>
       </v-layout>
-      <v-tooltip top>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn
-              v-on:click="toggleSandbox"
-              elevation="2"
-              fab fixed bottom right dark
-              :color="isSandbox?'green':'red'"
-              v-bind="attrs"
-              v-on="on"
-          ><v-icon>mdi-pencil</v-icon></v-btn>
+
+      <v-speed-dial v-model="fab" fixed bottom right v-if="this.selectedRoute">
+        <template v-slot:activator>
+          <v-btn v-model="fab" color="blue darken-2" dark fab>
+            <v-icon v-if="fab">mdi-close</v-icon>
+            <v-icon v-else>mdi-settings</v-icon>
+          </v-btn>
         </template>
-        <span>{{isSandbox?'View mode':'Sandbox'}}</span>
-      </v-tooltip>
+        <v-btn v-if="isSandbox" fab dark small color="indigo" v-on:click="isApiCallRequested = true">
+          <v-icon>mdi-play</v-icon>
+        </v-btn>
+        <v-btn fab dark small color="green" v-on:click="toggleSandbox">
+          <v-icon v-if="isSandbox">mdi-newspaper</v-icon>
+          <v-icon v-else>mdi-pencil</v-icon>
+        </v-btn>
+      </v-speed-dial>
 
-      <v-snackbar v-model="showTagSearch" :timeout=-1 color="white">
-          <v-row>
-            <v-col>
-              <tag-view-component :tags="tagsList" :hideTitle="true"></tag-view-component>
-              <v-btn outlined color="pink" class="float-right mt-2" @click="clearTagList">Clear</v-btn>
-            </v-col>
-          </v-row>
+      <v-snackbar v-model="isShowSnackbar" :timeout=-1 color="white">
+        <v-row>
+          <v-col>
+            <tag-view-component :tags="tagsList" :hideTitle="true"></tag-view-component>
+            <v-btn outlined color="pink" class="float-right mt-2" @click="clearTagList">Clear</v-btn>
+          </v-col>
+        </v-row>
       </v-snackbar>
-
     </v-container>
   </v-main>
 </template>
 
 <script>
-import {mapState} from "vuex";
+import {mapGetters, mapState} from "vuex";
 import TagViewComponent from "../components/routeComponent/TagViewComponent";
+import {variableParsing} from "../mixins/variableParsing";
+import {cloneDeep} from "../mixins/cloneDeep";
 
 export default {
+  mixins: [variableParsing, cloneDeep],
   components: {TagViewComponent},
   beforeCreate() {
     // When page loads set current route name
@@ -52,50 +60,55 @@ export default {
     this.$store.dispatch('loadRoutes');
   },
   props: {},
-  mounted() {},
+  mounted() {
+  },
   computed: {
-    ...mapState(['project', 'environment', 'isSandbox','tags']),
-    computedRoute: function () {
-      // If selected item is not a folder
-      if (this.selectedRoute && this.selectedRoute.hasOwnProperty('request')) {
-        let newRoute = _.clone(this.selectedRoute);
-        newRoute.request.uriParams = _.filter(newRoute.request.params, function (parameter) {
-          return parameter.type === 'uri';
-        });
-        newRoute.request.postParams = _.filter(newRoute.request.params, function (parameter) {
-          return parameter.type === 'post';
-        });
-        return newRoute;
-      }
-      return null;
-    },
-    hasEnvironments: function () {
-      return this.project.hasOwnProperty('environments') && this.project.environments.length > 0;
-    },
-    tagsList: function() {
+    ...mapState(['project', 'isSandbox', 'tags', 'isLoading', 'variables']),
+    ...mapGetters(['hasVariables']),
+    tagsList: function () {
       return Array.from(this.tags);
     }
   },
   data() {
     return {
+      fab:false,
       selectedRoute: null,
-      showTagSearch: false
+      computedRoute: null,
+      isShowSnackbar: false,
+      isVariablesShow:false,
+      isApiCallRequested:false
     };
   },
   methods: {
     selectRoute: function (route) {
-      this.selectedRoute = route;
+      this.computedRoute = null;
+      this.selectedRoute = null;
+      if (route && route.hasOwnProperty('request')) {
+        this.selectedRoute = this.cloneDeep(route);
+        this.formatRoute();
+      }
+    },
+    formatRoute: function () {
+      this.computedRoute = this.parseVariablesAndFormat(
+          this.cloneDeep(this.selectedRoute)
+      );
     },
     toggleSandbox: function () {
       this.$store.dispatch('toggleSandbox');
     },
-    clearTagList: function() {
+    clearTagList: function () {
       this.$store.dispatch('clearTagSearch');
+    },
+    toggleShowVariables: function () {
+      this.isVariablesShow = !this.isVariablesShow;
+    },
+    requestDone: function () {
+      this.isApiCallRequested = false;
     }
   },
   watch: {
-    '$store.state.tags': function(to, from) {
-      this.showTagSearch = to.size > 0;
+    '$store.state.tags': function (to, from) {
+      this.isShowSnackbar = to.size > 0;
     }
   }
 }
