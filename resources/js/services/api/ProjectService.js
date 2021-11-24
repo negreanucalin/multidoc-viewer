@@ -1,4 +1,4 @@
-import request from './ApiRequestService';
+import request from '../../axiosBase';
 
 export default {
     async get() {
