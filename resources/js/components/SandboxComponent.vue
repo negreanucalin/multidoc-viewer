@@ -40,6 +40,7 @@
         ></v-text-field>
       </div>
     </div>
+    <tag-view-component :tags="clonedRoute.tags"/>
 
     <v-dialog v-model="showResponseModal" max-width="900">
       <v-card v-if="apiResponse">

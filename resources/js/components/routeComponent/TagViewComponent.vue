@@ -1,7 +1,7 @@
 <template>
     <span>
       <template v-if="tags && tags.length">
-      <h4 v-if="!hideTitle">Tags</h4>
+      <span v-if="!hideTitle" class="font-weight-bold">Tags</span>
       <span v-for="tag in tags">
           <v-chip class="ma-2" color="blue" text-color="white" v-on:click="toggleTag(tag)">{{ tag }}</v-chip>
       </span>

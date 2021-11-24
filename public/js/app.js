@@ -2190,8 +2190,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   props: {
     route: null
@@ -2229,6 +2227,7 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
+//
 //
 //
 //
@@ -2760,8 +2759,6 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-//
-//
 //
 //
 //
@@ -6695,11 +6692,7 @@ var render = function () {
                 )
               : _vm._e(),
             _vm._v(" "),
-            _c(
-              "div",
-              [_c("tag-view-component", { attrs: { tags: _vm.route.tags } })],
-              1
-            ),
+            _c("tag-view-component", { attrs: { tags: _vm.route.tags } }),
           ],
           1
         )
@@ -6853,6 +6846,8 @@ var render = function () {
                 2
               )
             : _vm._e(),
+          _vm._v(" "),
+          _c("tag-view-component", { attrs: { tags: _vm.clonedRoute.tags } }),
           _vm._v(" "),
           _c(
             "v-dialog",
@@ -7412,7 +7407,11 @@ var render = function () {
     [
       _vm.tags && _vm.tags.length
         ? [
-            !_vm.hideTitle ? _c("h4", [_vm._v("Tags")]) : _vm._e(),
+            !_vm.hideTitle
+              ? _c("span", { staticClass: "font-weight-bold" }, [
+                  _vm._v("Tags"),
+                ])
+              : _vm._e(),
             _vm._v(" "),
             _vm._l(_vm.tags, function (tag) {
               return _c(
@@ -7507,31 +7506,24 @@ var render = function () {
                     2
                   ),
                   _vm._v(" "),
-                  !_vm.isSandbox
-                    ? _c(
-                        "v-flex",
-                        { attrs: { md9: "", "pl-2": "", "pr-2": "" } },
-                        [
-                          _c("route-component", {
+                  _c(
+                    "v-flex",
+                    { attrs: { md9: "", "pl-2": "", "pr-2": "" } },
+                    [
+                      !_vm.isSandbox
+                        ? _c("route-component", {
                             attrs: { route: _vm.computedRoute },
-                          }),
-                        ],
-                        1
-                      )
-                    : _c(
-                        "v-flex",
-                        { attrs: { md9: "", "pl-2": "", "pr-2": "" } },
-                        [
-                          _c("sandbox-component", {
+                          })
+                        : _c("sandbox-component", {
                             attrs: {
                               route: _vm.computedRoute,
                               "call-api": _vm.isApiCallRequested,
                             },
                             on: { "request-done": _vm.requestDone },
                           }),
-                        ],
-                        1
-                      ),
+                    ],
+                    1
+                  ),
                 ],
                 1
               ),

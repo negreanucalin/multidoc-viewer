@@ -14,9 +14,7 @@
                 <h4>Request params</h4>
                 <parameter-table :parameters="route.request.postParams"></parameter-table>
             </div>
-            <div>
-              <tag-view-component :tags="route.tags"/>
-            </div>
+            <tag-view-component :tags="route.tags"/>
         </div>
     </div>
 </template>

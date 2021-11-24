@@ -9,11 +9,9 @@
           </template>
           <route-tree-component v-on:selected:route="selectRoute"></route-tree-component>
         </v-flex>
-        <v-flex md9 pl-2 pr-2 v-if="!isSandbox">
-          <route-component :route="computedRoute"></route-component>
-        </v-flex>
-        <v-flex md9 pl-2 pr-2 v-else>
-          <sandbox-component :route="computedRoute" :call-api="isApiCallRequested" v-on:request-done="requestDone"></sandbox-component>
+        <v-flex md9 pl-2 pr-2>
+          <route-component v-if="!isSandbox" :route="computedRoute"></route-component>
+          <sandbox-component v-else :route="computedRoute" :call-api="isApiCallRequested" v-on:request-done="requestDone"></sandbox-component>
         </v-flex>
       </v-layout>
 
