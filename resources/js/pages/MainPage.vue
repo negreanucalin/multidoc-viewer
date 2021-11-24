@@ -87,9 +87,11 @@ export default {
       }
     },
     formatRoute: function () {
-      this.computedRoute = this.parseVariablesAndFormat(
-          this.cloneDeep(this.selectedRoute)
-      );
+      if (this.selectedRoute) {
+        this.computedRoute = this.parseVariablesAndFormat(
+            this.cloneDeep(this.selectedRoute)
+        );
+      }
     },
     toggleSandbox: function () {
       this.$store.dispatch('toggleSandbox');

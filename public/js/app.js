@@ -2846,7 +2846,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       }
     },
     formatRoute: function formatRoute() {
-      this.computedRoute = this.parseVariablesAndFormat(this.cloneDeep(this.selectedRoute));
+      if (this.selectedRoute) {
+        this.computedRoute = this.parseVariablesAndFormat(this.cloneDeep(this.selectedRoute));
+      }
     },
     toggleSandbox: function toggleSandbox() {
       this.$store.dispatch('toggleSandbox');
